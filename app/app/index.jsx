@@ -7,6 +7,7 @@ import {
 import { useRouter } from 'expo-router';
 import StartButton from '../components/custom/StartButton';
 import HelpButton from '../components/custom/HelpButton';
+import AboutButton from '../components/custom/AboutButton';
 import TreeHero from '@/assets/images/tree-of-life-hero.png';
 
 
@@ -23,25 +24,24 @@ const App = () => {
                 style={styles.imageBg}
                 >
                 <View>
+                    
                     <Text
                         style={styles.textTitle}>Tree Of Life
                     </Text>
-                    <View>
+
+                    <View style={styles.buttonContainer}>
 
                         <StartButton 
                             titleBtn="Start"
-                            btn={()=> Alert.alert("System", "Sure kana ba?", [
-                                {
-                                text: "Yes",
-                                },
-                                {
-                                text: "No",
-                                }
-                            ])}/>
+                            Btn={()=> Alert.alert("System")}/>
 
                         <HelpButton
-                            titleBtn="Help"/>
+                            titleBtn="Help"
+                            Btn={() => router.push('/help')}/>
 
+                        <AboutButton
+                            titleBtn="About"
+                            Btn={() => router.push('/about')}/>
                         
 
                     </View>
@@ -68,10 +68,13 @@ const styles = StyleSheet.create({
     },
 
     textTitle: {
-        fontSize: 24,
+        fontSize: 50,
         fontWeight: 'bold',
     },
 
+    buttonContainer: {
+        marginTop: 20,
+    }
 
 })  
 

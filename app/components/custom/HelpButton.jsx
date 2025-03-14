@@ -13,9 +13,11 @@ const HelpButton = (props) => {
 
  const styles = StyleSheet.create({
     helpButton: {
-        padding: 10,
+        padding: 15,
         margin: 3,
         backgroundColor: 'gray',
+        borderRadius: 5
+
     },
     helpText: {
         textAlign: 'center',

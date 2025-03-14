@@ -15,9 +15,10 @@ const StartButton  = (props) => {
 const styles = StyleSheet.create({ 
 
     startButton: {
-        padding: 10,
+        padding: 15,
         margin: 3,
         backgroundColor: 'green',
+        borderRadius: 5
     },
     startText: {
         textAlign: 'center',

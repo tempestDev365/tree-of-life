@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 
 const HelpLayout = () => {
+    return (
     <Stack>
         <Stack.Screen 
             name="Help"
@@ -9,6 +10,7 @@ const HelpLayout = () => {
             }}
         />
     </Stack>
+    )
 }
 
 export default HelpLayout
