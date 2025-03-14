@@ -1,0 +1,194 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.0">
+  <diagram name="Page-1" id="wpX60X5D_7H_PBYz6TnM">
+    <mxGraphModel dx="2508" dy="964" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-1" target="Zo-k8Cr3B6CE3x1IVNoR-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-1" value="START" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="340" y="190" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-2" target="Zo-k8Cr3B6CE3x1IVNoR-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-2" value="TREE OF LIFE" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-4" target="Zo-k8Cr3B6CE3x1IVNoR-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-4" target="Zo-k8Cr3B6CE3x1IVNoR-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-4" target="Zo-k8Cr3B6CE3x1IVNoR-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-4" value="SELECT AN&lt;br&gt;OPTION" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="430" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-6" target="Zo-k8Cr3B6CE3x1IVNoR-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-6" value="ABOUT" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-8" target="Zo-k8Cr3B6CE3x1IVNoR-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-8" value="START" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="590" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-10" target="Zo-k8Cr3B6CE3x1IVNoR-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-10" value="HELP" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-12" value="INFORMATIONS" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-14" value="INSTRUCTIONS" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-16" target="Zo-k8Cr3B6CE3x1IVNoR-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-16" target="Zo-k8Cr3B6CE3x1IVNoR-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-16" target="Zo-k8Cr3B6CE3x1IVNoR-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-16" value="SELECT&lt;br&gt;CATEGORIES" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="720" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-178" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-18" target="Zo-k8Cr3B6CE3x1IVNoR-128">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="1060" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-18" value="WALKING" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="890" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-129" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-20" target="Zo-k8Cr3B6CE3x1IVNoR-128">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-20" value="RUNNING" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="890" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-179" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-22" target="Zo-k8Cr3B6CE3x1IVNoR-128">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="550" y="1060" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-22" value="JOGGING" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="890" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-131" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-128" target="Zo-k8Cr3B6CE3x1IVNoR-130">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-128" value="&lt;div&gt;START&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1030" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-132" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-130" target="Zo-k8Cr3B6CE3x1IVNoR-128">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="1200" />
+              <mxPoint x="500" y="1060" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-133" value="NO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-132">
+          <mxGeometry x="0.0525" y="-4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-138" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-130" target="Zo-k8Cr3B6CE3x1IVNoR-137">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-141" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-138">
+          <mxGeometry x="0.1252" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-130" value="IS THE USER IS DONE" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1160" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-140" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-137" target="Zo-k8Cr3B6CE3x1IVNoR-139">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-137" value="TIMER AND STEP TRACKER STOPPED" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-143" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-139" target="Zo-k8Cr3B6CE3x1IVNoR-142">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-139" value="HOW MANY STEP&lt;br&gt;DID YOU DO?" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1430" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-161" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-142" target="Zo-k8Cr3B6CE3x1IVNoR-160">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-162" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-161">
+          <mxGeometry x="0.1333" y="-4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-163" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-142" target="Zo-k8Cr3B6CE3x1IVNoR-159">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-164" value="NO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-163">
+          <mxGeometry x="-0.1222" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-142" value="Is the user&#39;s&lt;br&gt;step count correct?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1550" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-166" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-159" target="Zo-k8Cr3B6CE3x1IVNoR-165">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-159" value="2 ATTEMPT LEFT" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-176" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-160" target="Zo-k8Cr3B6CE3x1IVNoR-175">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-160" value="Tree Level Up depend on the step" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1700" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-168" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-165" target="Zo-k8Cr3B6CE3x1IVNoR-160">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-170" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-168">
+          <mxGeometry x="-0.2476" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-173" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zo-k8Cr3B6CE3x1IVNoR-165" target="Zo-k8Cr3B6CE3x1IVNoR-172">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-174" value="NO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Zo-k8Cr3B6CE3x1IVNoR-173">
+          <mxGeometry x="-0.2337" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-165" value="Is the user&#39;s step count correct?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1690" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-172" value="TREE DID NOT LEVEL UP" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1700" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Zo-k8Cr3B6CE3x1IVNoR-175" value="END" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1830" width="80" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
