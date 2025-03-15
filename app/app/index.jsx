@@ -1,7 +1,6 @@
 import { 
     View, 
     Text, 
-    Alert,
     ImageBackground,
     StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -33,7 +32,7 @@ const App = () => {
 
                         <StartButton 
                             titleBtn="Start"
-                            Btn={()=> Alert.alert("System")}/>
+                            Btn={()=> router.push('/categories')}/>
 
                         <HelpButton
                             titleBtn="Help"
@@ -42,10 +41,8 @@ const App = () => {
                         <AboutButton
                             titleBtn="About"
                             Btn={() => router.push('/about')}/>
-                        
 
                     </View>
-
                 </View>
             </ImageBackground>
         </View>

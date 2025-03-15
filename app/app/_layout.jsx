@@ -30,6 +30,12 @@ const RootLayout = ( ) => {
           },
           headerTintColor: "white",
         }}/>
+
+      <Stack.Screen
+        name="categories"
+        options={{
+          headerShown: false
+        }}/>
   </Stack>
     )
 }
