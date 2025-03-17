@@ -1,33 +1,55 @@
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import WalkingBG from '@/assets/images/walking-keeps-you-healthy.webp';
+import JoggingBG from '@/assets/images/jogging.jpg';
+import RunningBG from '@/assets/images/running.jpg';
 
 const Categories = () => { 
 
-    const navigation = useNavigation(); // <-- Get navigation object
+    const navigation = useNavigation();
 
     return(
         <SafeAreaView style={styles.container}>
+
             <View style={styles.categoriesButtonWrapper}>
                 <TouchableOpacity style={styles.categoriesButton}>
                     <ImageBackground
                         source={WalkingBG}
                         resizeMode='cover'
-                        style={{width: '100%', height: '100%'}}>
-                    <Text>Category 1</Text>
+                        style={styles.imageContainer}>
+                            <View style={styles.overlay}>
+                                <Text style={styles.imageText}>WALKING</Text> 
+                            </View>
                     </ImageBackground>
                 </TouchableOpacity>
             </View>
+
             <View style={styles.categoriesButtonWrapper}>
                 <TouchableOpacity style={styles.categoriesButton}>
-                    <Text>Category 2</Text>
+                    <ImageBackground
+                        source={JoggingBG}
+                        resizeMode='cover' 
+                        style={styles.imageContainer}>
+                            <View style={styles.overlay}>
+                                <Text style={styles.imageText}>JOGGING</Text>
+                            </View>
+                    </ImageBackground>  
                 </TouchableOpacity>
             </View>
+
             <View style={styles.categoriesButtonWrapper}>
                 <TouchableOpacity style={styles.categoriesButton}>
-                    <Text>Category 3</Text>
+                    <ImageBackground
+                        source={RunningBG}
+                        resizeMode='cover' 
+                        style={styles.imageContainer}>
+                            <View style={styles.overlay}>
+                                <Text style={styles.imageText}>RUNNING</Text>
+                            </View>
+                    </ImageBackground>
                 </TouchableOpacity>
             </View>
+
             <TouchableOpacity
                 style={styles.backButton} 
                 onPress={() => navigation.goBack()}>
@@ -49,11 +71,10 @@ const styles = StyleSheet.create({
     },
     categoriesButtonWrapper: {
         width: '85%',
-        height: '15%',
+        height: '20%',
     },
     categoriesButton: {
-        borderColor: 'black',
-        borderWidth: 1,
+      
         borderRadius: 10,
         width: '100%',
         height: '100%',
@@ -73,7 +94,25 @@ const styles = StyleSheet.create({
     backButtonText: {
         color: 'white',
         fontSize: 20,
-    }
+    },
+    imageContainer: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageText: {
+        color: 'white',
+        fontSize: 30,
+        fontWeight: 'bold',
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // Black overlay with 40% opacity
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },  
 })
 
 export default Categories;
