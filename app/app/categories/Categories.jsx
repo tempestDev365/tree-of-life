@@ -12,7 +12,9 @@ const Categories = () => {
         <SafeAreaView style={styles.container}>
 
             <View style={styles.categoriesButtonWrapper}>
-                <TouchableOpacity style={styles.categoriesButton}>
+                <TouchableOpacity 
+                    style={styles.categoriesButton}
+                    onPress={() => navigation.push('walking/walking')}>
                     <ImageBackground
                         source={WalkingBG}
                         resizeMode='cover'
@@ -25,7 +27,9 @@ const Categories = () => {
             </View>
 
             <View style={styles.categoriesButtonWrapper}>
-                <TouchableOpacity style={styles.categoriesButton}>
+                <TouchableOpacity 
+                    style={styles.categoriesButton}
+                    onPress={() => navigation.push('jogging/jogging')}>
                     <ImageBackground
                         source={JoggingBG}
                         resizeMode='cover' 
@@ -38,7 +42,9 @@ const Categories = () => {
             </View>
 
             <View style={styles.categoriesButtonWrapper}>
-                <TouchableOpacity style={styles.categoriesButton}>
+                <TouchableOpacity 
+                    style={styles.categoriesButton}
+                    onPress={() => navigation.push('running/running')}>
                     <ImageBackground
                         source={RunningBG}
                         resizeMode='cover' 

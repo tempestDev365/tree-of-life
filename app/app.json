@@ -9,9 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tempest8080.app",
+      "infoPlist": {
+        "NSMotionUsageDescription": "This app uses motion tracking to count your steps.",
+        "NSHealthShareUsageDescription": "This app requires access to Apple Health to read your step count.",
+        "NSHealthUpdateUsageDescription": "This app requires access to Apple Health to track your activity."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true
+      }
     },
     "android": {
+      "package": "com.tempest8080.app",
+      "permissions": [
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.BODY_SENSORS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -32,10 +46,19 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "react-native-health"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "bef86f59-69c1-4a6b-b4a0-e942783bb841"
+      }
     }
   }
 }
