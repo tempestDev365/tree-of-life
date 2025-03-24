@@ -14,7 +14,7 @@ const Categories = () => {
             <View style={styles.categoriesButtonWrapper}>
                 <TouchableOpacity 
                     style={styles.categoriesButton}
-                    onPress={() => navigation.push('walking/walking')}>
+                    onPress={() => navigation.push('walking/Walking')}>
                     <ImageBackground
                         source={WalkingBG}
                         resizeMode='cover'

@@ -74,12 +74,30 @@ const StepCounter = () => {
     }
   };
 
+  const getDistance = () => {
+    let stepLength;
+    switch (selectedMode) {
+      case "Jogging":
+        stepLength = 1.0;
+        break;
+      case "Running":
+        stepLength = 1.5;
+        break;
+      default:
+        stepLength = 0.7;
+    }
+    const distanceMeters = steps * stepLength;
+    const distanceKm = (distanceMeters / 1000).toFixed(2);
+    return `${distanceMeters.toFixed(1)} meters (${distanceKm} km)`;
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Step Tracker ({selectedMode} Mode)</Text>
       <Text style={styles.level}>Level: {level}</Text>
       <Text style={styles.timer}>Time: {timer}s</Text>
       <Text style={styles.steps}>Steps: {steps}</Text>
+      <Text style={styles.distance}>Distance: {getDistance()}</Text>
 
       <Button title={isTracking ? "Stop" : "Start"} onPress={() => isTracking ? stopTracking() : setIsTracking(true)} />
 
@@ -114,6 +132,7 @@ const styles = StyleSheet.create({
   level: { fontSize: 18, color: "blue", marginTop: 10 },
   timer: { fontSize: 18, marginTop: 10 },
   steps: { fontSize: 18, marginTop: 10, color: "green" },
+  distance: { fontSize: 18, marginTop: 10, color: "purple" },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
   modalText: { fontSize: 18, marginTop: 10, textAlign: "center" }

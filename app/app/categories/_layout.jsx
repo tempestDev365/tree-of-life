@@ -9,7 +9,11 @@ const CategoriesLayout = () =>{
                 options={{
                     headerShown: false
                 }}  />
+
+                
         </Stack>
+
+
     )
 }
 
