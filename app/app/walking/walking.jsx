@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Modal, ActivityIndicator, Button, TextInput, Alert } from "react-native";
+import { View, Text, StyleSheet, Modal, ActivityIndicator, Button, Alert } from "react-native";
 import { Pedometer } from "expo-sensors";
 
 const StepCounter = () => {
@@ -10,18 +10,14 @@ const StepCounter = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [guess, setGuess] = useState("");
+  const [options, setOptions] = useState([]);
   const [feedback, setFeedback] = useState("");
-  const [attempts, setAttempts] = useState(2);
-  const [hint, setHint] = useState(null);
   const [level, setLevel] = useState(1);
   const [selectedMode, setSelectedMode] = useState("Walking");
 
   useEffect(() => {
     let subscription;
     let interval;
-    let lastSteps = 0;
-    let lastTime = Date.now();
 
     const checkPedometer = async () => {
       const available = await Pedometer.isAvailableAsync();
@@ -29,18 +25,7 @@ const StepCounter = () => {
       if (available) {
         subscription = Pedometer.watchStepCount((result) => {
           if (isTracking) {
-            const currentTime = Date.now();
-            const stepDifference = result.steps - lastSteps;
-            const timeDifference = (currentTime - lastTime) / 1000;
-            const stepRate = stepDifference / timeDifference;
-
-            if (selectedMode === "Walking" && stepRate > 2.5) {
-              Alert.alert("Warning", "You are moving too fast for walking mode!");
-            }
-
             setSteps(result.steps);
-            lastSteps = result.steps;
-            lastTime = currentTime;
           }
         });
       }
@@ -50,8 +35,8 @@ const StepCounter = () => {
       setSteps(0);
       setFinalizedSteps(null);
       setTimer(0);
-      interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
       checkPedometer();
+      interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
     }
 
     return () => {
@@ -67,44 +52,37 @@ const StepCounter = () => {
       setFinalizedSteps(steps);
       setIsLoading(false);
       setIsModalVisible(true);
-      setAttempts(2);
       setFeedback("");
-      setHint(null);
-    }, 5000);
+      generateChoices(steps);
+      setLevel((prevLevel) => prevLevel + Math.floor(steps / 1000));
+    }, 3000);
   };
 
-  const checkGuess = () => {
-    const guessedNumber = parseInt(guess);
-    const lowerBound = finalizedSteps - 5;
-    const upperBound = finalizedSteps + 5;
+  const generateChoices = (actualSteps) => {
+    const correctRange = `Between ${actualSteps - 5} to ${actualSteps + 5}`;
+    const wrongRange1 = `Between ${actualSteps + 10} to ${actualSteps + 20}`;
+    const wrongRange2 = `Between ${actualSteps - 20} to ${actualSteps - 10}`;
+    const choices = [correctRange, wrongRange1, wrongRange2].sort(() => Math.random() - 0.5);
+    setOptions(choices);
+  };
 
-    if (guessedNumber >= lowerBound && guessedNumber <= upperBound) {
-      setFeedback(`Correct! The exact step count was ${finalizedSteps}.`);
+  const checkAnswer = (selectedOption) => {
+    if (selectedOption === `Between ${finalizedSteps - 5} to ${finalizedSteps + 5}`) {
+      setFeedback("✅ Correct! Well done!");
     } else {
-      if (attempts > 1) {
-        setAttempts(attempts - 1);
-        if (!hint) {
-          setHint([finalizedSteps - 50, finalizedSteps + 50]);
-        }
-        setFeedback(`Incorrect, you have ${attempts - 1} attempt(s) left.`);
-      } else {
-        setFeedback(`Failed! No attempts left. The exact step count was ${finalizedSteps}.`);
-      }
+      setFeedback(`❌ Incorrect! The correct answer was Between ${finalizedSteps - 5} to ${finalizedSteps + 5}`);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Step Tracker</Text>
+      <Text style={styles.title}>Step Tracker ({selectedMode} Mode)</Text>
       <Text style={styles.level}>Level: {level}</Text>
-      {isTracking ? (
-        <Text style={styles.timer}>Time: {timer}s</Text>
-      ) : finalizedSteps === null ? (
-        <Text style={styles.status}>Press start to begin tracking.</Text>
-      ) : null}
-      
+      <Text style={styles.timer}>Time: {timer}s</Text>
+      <Text style={styles.steps}>Steps: {steps}</Text>
+
       <Button title={isTracking ? "Stop" : "Start"} onPress={() => isTracking ? stopTracking() : setIsTracking(true)} />
-      
+
       {isLoading && (
         <Modal transparent={true} visible={isLoading}>
           <View style={styles.modalContainer}>
@@ -113,21 +91,15 @@ const StepCounter = () => {
           </View>
         </Modal>
       )}
-      
+
       <Modal transparent={true} visible={isModalVisible}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Your Steps are Finalized!</Text>
-            <TextInput 
-              style={styles.input}
-              placeholder="Enter your guess"
-              keyboardType="numeric"
-              value={guess}
-              onChangeText={setGuess}
-            />
-            <Button title="Submit Guess" onPress={checkGuess} />
+            {options.map((option, index) => (
+              <Button key={index} title={option} onPress={() => checkAnswer(option)} />
+            ))}
             {feedback !== "" && <Text style={styles.modalText}>{feedback}</Text>}
-            {hint && <Text style={styles.modalText}>Hint: Between {hint[0]} and {hint[1]}</Text>}
             <Button title="Close" onPress={() => setIsModalVisible(false)} />
           </View>
         </View>
@@ -141,13 +113,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "bold" },
   level: { fontSize: 18, color: "blue", marginTop: 10 },
   timer: { fontSize: 18, marginTop: 10 },
-  status: { fontSize: 16, color: "gray", marginTop: 10 },
-  finalized: { fontSize: 20, fontWeight: "bold", marginTop: 10 },
+  steps: { fontSize: 18, marginTop: 10, color: "green" },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  modalText: { fontSize: 16, marginBottom: 10 },
-  input: { borderBottomWidth: 1, width: 100, textAlign: "center", marginBottom: 10 }
+  modalText: { fontSize: 18, marginTop: 10, textAlign: "center" }
 });
 
 export default StepCounter;
