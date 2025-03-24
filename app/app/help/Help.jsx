@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native';
 const Help = () => {
     return (
         <View>
-            <Text style={styles.textTitle}>Hellop</Text>
+            <Text style={styles.textTitle}>This feature is not available yet!!</Text>
         </View>
     );
 }

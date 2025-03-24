@@ -10,7 +10,10 @@ const StepCounter = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [options, setOptions] = useState([]);
+  const [mathProblem, setMathProblem] = useState("");
+  const [mathAnswer, setMathAnswer] = useState(null);
+  const [mathOptions, setMathOptions] = useState([]);
+  const [mathTimer, setMathTimer] = useState(3);
   const [feedback, setFeedback] = useState("");
   const [level, setLevel] = useState(1);
   const [selectedMode, setSelectedMode] = useState("Walking");
@@ -51,55 +54,93 @@ const StepCounter = () => {
     setTimeout(() => {
       setFinalizedSteps(steps);
       setIsLoading(false);
+      generateMathProblem();
       setIsModalVisible(true);
       setFeedback("");
-      generateChoices(steps);
-      setLevel((prevLevel) => prevLevel + Math.floor(steps / 1000));
+      setMathTimer(3);
+      startMathTimer();
     }, 3000);
   };
 
-  const generateChoices = (actualSteps) => {
-    const correctRange = `Between ${actualSteps - 5} to ${actualSteps + 5}`;
-    const wrongRange1 = `Between ${actualSteps + 10} to ${actualSteps + 20}`;
-    const wrongRange2 = `Between ${actualSteps - 20} to ${actualSteps - 10}`;
-    const choices = [correctRange, wrongRange1, wrongRange2].sort(() => Math.random() - 0.5);
-    setOptions(choices);
+  const generateMathProblem = () => {
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    const operations = ["+", "-", "*"];
+    const operation = operations[Math.floor(Math.random() * operations.length)];
+
+    let answer;
+    switch (operation) {
+      case "+":
+        answer = num1 + num2;
+        break;
+      case "-":
+        answer = num1 - num2;
+        break;
+      case "*":
+        answer = num1 * num2;
+        break;
+    }
+    
+    const options = [answer, answer + 2, answer - 2].sort(() => Math.random() - 0.5);
+    
+    setMathProblem(`${num1} ${operation} ${num2} = ?`);
+    setMathAnswer(answer);
+    setMathOptions(options);
   };
 
-  const checkAnswer = (selectedOption) => {
-    if (selectedOption === `Between ${finalizedSteps - 5} to ${finalizedSteps + 5}`) {
+  const startMathTimer = () => {
+    let timeLeft = 3;
+    const timerInterval = setInterval(() => {
+      timeLeft -= 1;
+      setMathTimer(timeLeft);
+      if (timeLeft === 0) {
+        clearInterval(timerInterval);
+        setFeedback(`⏳ Time's up! The correct answer was ${mathAnswer}`);
+        setTimeout(() => {
+          Alert.alert("Time's up!", "You failed to answer.");
+          setIsModalVisible(false);
+        }, 500);
+      }
+    }, 1000);
+
+    // Store the interval ID in a ref so we can clear it when needed
+    window.mathTimerInterval = timerInterval;
+  };
+
+  const checkMathAnswer = (selectedOption) => {
+    if (selectedOption === mathAnswer) {
+      // Clear the timer interval
+      if (window.mathTimerInterval) {
+        clearInterval(window.mathTimerInterval);
+      }
       setFeedback("✅ Correct! Well done!");
+      setLevel(level + 1);
+      // Show success message and close modal
+      setTimeout(() => {
+        Alert.alert("Great job!", "You solved the math problem correctly!");
+        setIsModalVisible(false);
+      }, 1000);
     } else {
-      setFeedback(`❌ Incorrect! The correct answer was Between ${finalizedSteps - 5} to ${finalizedSteps + 5}`);
+      setFeedback(`❌ Incorrect! The correct answer was ${mathAnswer}`);
+      setTimeout(() => {
+        setIsModalVisible(false);
+      }, 1500);
     }
   };
 
   const getDistance = () => {
-    let stepLength;
-    switch (selectedMode) {
-      case "Jogging":
-        stepLength = 1.0;
-        break;
-      case "Running":
-        stepLength = 1.5;
-        break;
-      default:
-        stepLength = 0.7;
-    }
-    const distanceMeters = steps * stepLength;
-    const distanceKm = (distanceMeters / 1000).toFixed(2);
-    return `${distanceMeters.toFixed(1)} meters (${distanceKm} km)`;
+    let stepLength = selectedMode === "Running" ? 1.5 : selectedMode === "Jogging" ? 1.0 : 0.7;
+    return (steps * stepLength / 1000).toFixed(2) + " km";
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Step Tracker ({selectedMode} Mode)</Text>
       <Text style={styles.level}>Level: {level}</Text>
-      <Text style={styles.timer}>Time: {timer}s</Text>
       <Text style={styles.steps}>Steps: {steps}</Text>
+      <Text style={styles.timer}>Time: {timer}s</Text>
       <Text style={styles.distance}>Distance: {getDistance()}</Text>
-
-      <Button title={isTracking ? "Stop" : "Start"} onPress={() => isTracking ? stopTracking() : setIsTracking(true)} />
+      <Button title={isTracking ? "Stop" : "Start"} onPress={() => (isTracking ? stopTracking() : setIsTracking(true))} />
 
       {isLoading && (
         <Modal transparent={true} visible={isLoading}>
@@ -113,9 +154,11 @@ const StepCounter = () => {
       <Modal transparent={true} visible={isModalVisible}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Your Steps are Finalized!</Text>
-            {options.map((option, index) => (
-              <Button key={index} title={option} onPress={() => checkAnswer(option)} />
+            <Text style={styles.modalTitle}>Solve the Math Problem!</Text>
+            <Text style={styles.mathProblem}>{mathProblem}</Text>
+            <Text>Time left: {mathTimer}s</Text>
+            {mathOptions.map((option, index) => (
+              <Button key={index} title={option.toString()} onPress={() => checkMathAnswer(option)} />
             ))}
             {feedback !== "" && <Text style={styles.modalText}>{feedback}</Text>}
             <Button title="Close" onPress={() => setIsModalVisible(false)} />
@@ -130,8 +173,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: { fontSize: 24, fontWeight: "bold" },
   level: { fontSize: 18, color: "blue", marginTop: 10 },
+  steps: { 
+    fontSize: 18, 
+    marginTop: 10, 
+    color: 'green',
+    fontWeight: 'bold' 
+  },
   timer: { fontSize: 18, marginTop: 10 },
-  steps: { fontSize: 18, marginTop: 10, color: "green" },
   distance: { fontSize: 18, marginTop: 10, color: "purple" },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
