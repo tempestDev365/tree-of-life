@@ -15,14 +15,18 @@ const StartButton  = (props) => {
 const styles = StyleSheet.create({ 
 
     startButton: {
-        padding: 15,
+        padding: 10,
         margin: 3,
         backgroundColor: 'green',
-        borderRadius: 5
+        borderRadius: 20,
+        borderWidth: 5,
+        borderColor: 'brown'
     },
     startText: {
         textAlign: 'center',
         color: 'white',
+        fontSize : 25,
+        fontWeight: 'bold',
     },
 
 });

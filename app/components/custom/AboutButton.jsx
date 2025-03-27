@@ -13,15 +13,18 @@ const AboutButton = (props) => {
 
  const styles = StyleSheet.create({
     aboutButton: {
-        padding: 15,
+        padding: 10,
         margin: 3,
-        backgroundColor: 'gray',
-        borderRadius: 5
-
+        backgroundColor: 'green',
+        borderRadius: 20,
+        borderWidth: 5,
+        borderColor: 'brown'
     },
     aboutText: {
         textAlign: 'center',
         color: 'white',
+        fontSize: 25,
+        fontWeight: 'bold',
     },
  })
 

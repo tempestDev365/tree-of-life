@@ -1,13 +1,15 @@
 import { 
     View, 
     Text, 
+    Image,
     ImageBackground,
     StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import StartButton from '../components/custom/StartButton';
 import HelpButton from '../components/custom/HelpButton';
 import AboutButton from '../components/custom/AboutButton';
-import TreeHero from '@/assets/images/tree-of-life-hero.png';
+import TreeHero from '@/assets/images/hero.png';
+import Banner from '@/assets/images/TOL-BANNER.png';
 
 
 const App = () => {
@@ -15,35 +17,37 @@ const App = () => {
     const router = useRouter();
 
     return (
-        <View
-            style={styles.mainContainer}>
+        <View style={styles.mainContainer}>
             <ImageBackground
                 source={TreeHero}
                 resizeMode='cover'
                 style={styles.imageBg}
+            >
+                <ImageBackground
+                    source={Banner}
+                    resizeMode='contain'
+                    style={{
+                        width: '100%', // Adjust width as needed
+                        height: "80%",  // Increase height for a bigger banner
+                        alignSelf: 'center',
+                        position: 'absolute',
+                        top: '20%', // Adjust position as needed
+                    }}
                 >
-                <View>
-                    
-                    <Text
-                        style={styles.textTitle}>Tree Of Life
-                    </Text>
+                <View style={styles.buttonContainer}>
+                    <StartButton 
+                        titleBtn="START"
+                        Btn={()=> router.push('/categories')}/>
 
-                    <View style={styles.buttonContainer}>
+                    <HelpButton
+                        titleBtn="MECHANICS"
+                        Btn={() => router.push('/help')}/>
 
-                        <StartButton 
-                            titleBtn="Start"
-                            Btn={()=> router.push('/categories')}/>
-
-                        <HelpButton
-                            titleBtn="Help"
-                            Btn={() => router.push('/help')}/>
-
-                        <AboutButton
-                            titleBtn="About"
-                            Btn={() => router.push('/about')}/>
-
-                    </View>
-                </View>
+                    <AboutButton
+                        titleBtn="ABOUT"
+                        Btn={() => router.push('/about')}/>
+                </View> 
+                </ImageBackground>
             </ImageBackground>
         </View>
     );
@@ -69,8 +73,20 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
+    banner: {
+        width: '80%',
+        height: 100,
+        alignSelf: 'center',
+        position: 'absolute',
+        top: '20%',
+    },
+
     buttonContainer: {
-        marginTop: 20,
+        position: 'absolute',
+        top: '24%',
+        alignSelf: 'center',
+        gap: 3,
+        width: '45%',
     }
 
 })  
