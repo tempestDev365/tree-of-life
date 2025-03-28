@@ -135,11 +135,13 @@ const StepCounter = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Step Tracker ({selectedMode} Mode)</Text>
+      <Text style={styles.title}> ({selectedMode} Mode)</Text>
+
       <Text style={styles.level}>Level: {level}</Text>
-      <Text style={styles.steps}>Steps: {steps}</Text>
       <Text style={styles.timer}>Time: {timer}s</Text>
-      <Text style={styles.distance}>Distance: {getDistance()}</Text>
+
+      <Text style={styles.steps}>Estimated Steps: {steps}</Text>
+      <Text style={styles.distance}>Approximate Distance: {getDistance()}</Text>
       <Button title={isTracking ? "Stop" : "Start"} onPress={() => (isTracking ? stopTracking() : setIsTracking(true))} />
 
       {isLoading && (
