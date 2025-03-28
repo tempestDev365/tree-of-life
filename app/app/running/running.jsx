@@ -1,170 +1,263 @@
-// import React, { useState, useEffect } from "react";
-// import { View, Text, StyleSheet, Modal, ActivityIndicator, Button, TextInput, Alert, Image } from "react-native";
-// import { Pedometer } from "expo-sensors";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Modal, ActivityIndicator, Button, Alert } from "react-native";
+import { Pedometer } from "expo-sensors";
 
-// const StepCounter = () => {
-//   const [isAvailable, setIsAvailable] = useState(false);
-//   const [steps, setSteps] = useState(0);
-//   const [finalizedSteps, setFinalizedSteps] = useState(null);
-//   const [isTracking, setIsTracking] = useState(false);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [timer, setTimer] = useState(0);
-//   const [isModalVisible, setIsModalVisible] = useState(false);
-//   const [guess, setGuess] = useState("");
-//   const [feedback, setFeedback] = useState("");
-//   const [attempts, setAttempts] = useState(2);
-//   const [hint, setHint] = useState(null);
-//   const [level, setLevel] = useState(1);
-//   const [selectedMode, setSelectedMode] = useState("Running");
+const StepCounter = () => {
+  // Game Configuration for Running Category
+  const RUNNING_CONFIG = {
+    minDistance: 1.5,  // 1500m
+    minSteps: 1980,
+    basePoints: 1000,
+    correctAnswerPoints: 1000,
+    extraPointsPer100m: 150
+  };
 
-//   useEffect(() => {
-//     let subscription;
-//     let interval;
-//     let validationInterval;
-//     let lastSteps = 0;
-//     let lastTime = Date.now();
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [steps, setSteps] = useState(0);
+  const [finalizedSteps, setFinalizedSteps] = useState(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [mathProblem, setMathProblem] = useState("");
+  const [mathAnswer, setMathAnswer] = useState(null);
+  const [mathOptions, setMathOptions] = useState([]);
+  const [mathTimer, setMathTimer] = useState(10);  // 10 seconds timer
+  const [feedback, setFeedback] = useState("");
+  const [level, setLevel] = useState(1);
+  const [xp, setXp] = useState(0);
+  const [treeStage, setTreeStage] = useState("Sprout");  // Initial tree stage
 
-//     const checkPedometer = async () => {
-//       const available = await Pedometer.isAvailableAsync();
-//       setIsAvailable(available);
-//       if (available) {
-//         subscription = Pedometer.watchStepCount((result) => {
-//           if (isTracking) {
-//             setSteps(result.steps);
-//           }
-//         });
-//       }
-//     };
+  // Tree progression stages
+  const TREE_STAGES = [
+    { maxLevel: 50, stage: "Small Oak Tree 🌱🌳" },
+    { maxLevel: 100, stage: "Pine Tree 🌲" },
+    { maxLevel: 150, stage: "Cherry Blossom Tree 🌸" },
+    // Future stages can be added
+  ];
 
-//     if (isTracking) {
-//       setSteps(0);
-//       setFinalizedSteps(null);
-//       setTimer(0);
-//       interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
-//       checkPedometer();
+  useEffect(() => {
+    let subscription;
+    let interval;
+
+    const checkPedometer = async () => {
+      const available = await Pedometer.isAvailableAsync();
+      setIsAvailable(available);
+      if (available) {
+        subscription = Pedometer.watchStepCount((result) => {
+          if (isTracking) {
+            setSteps(result.steps);
+          }
+        });
+      }
+    };
+
+    if (isTracking) {
+      setSteps(0);
+      setFinalizedSteps(null);
+      setTimer(0);
+      checkPedometer();
+      interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
+    }
+
+    return () => {
+      if (subscription) subscription.remove();
+      if (interval) clearInterval(interval);
+    };
+  }, [isTracking]);
+
+  const stopTracking = () => {
+    setIsTracking(false);
+    setIsLoading(true);
+    setTimeout(() => {
+      setFinalizedSteps(steps);
+      setIsLoading(false);
       
-//       validationInterval = setInterval(() => {
-//         const currentTime = Date.now();
-//         const stepDifference = steps - lastSteps;
-//         const timeDifference = (currentTime - lastTime) / 1000;
-//         const stepRate = stepDifference / timeDifference;
-
-//         if (selectedMode === "Running" && stepRate < 6) {
-//           Alert.alert("Warning", "You are moving too slow for running mode!");
-//         }
-
-//         lastSteps = steps;
-//         lastTime = currentTime;
-//       }, 5000);
-//     }
-
-//     return () => {
-//       if (subscription) subscription.remove();
-//       if (interval) clearInterval(interval);
-//       if (validationInterval) clearInterval(validationInterval);
-//     };
-//   }, [isTracking]);
-
-//   const stopTracking = () => {
-//     setIsTracking(false);
-//     setIsLoading(true);
-//     setTimeout(() => {
-//       setFinalizedSteps(steps);
-//       setIsLoading(false);
-//       setIsModalVisible(true);
-//       setAttempts(2);
-//       setFeedback("");
-//       setHint(null);
-//       setLevel((prevLevel) => prevLevel + Math.floor(steps / 1000));
-//     }, 5000);
-//   };
-
-//   const checkGuess = () => {
-//     const guessedNumber = parseInt(guess);
-//     const lowerBound = finalizedSteps - 5;
-//     const upperBound = finalizedSteps + 5;
-
-//     if (guessedNumber >= lowerBound && guessedNumber <= upperBound) {
-//       setFeedback(`Correct! The exact step count was ${finalizedSteps}.`);
-//     } else {
-//       if (attempts > 1) {
-//         setAttempts(attempts - 1);
-//         if (!hint) {
-//           setHint([finalizedSteps - 50, finalizedSteps + 50]);
-//         }
-//         setFeedback(`Incorrect, you have ${attempts - 1} attempt(s) left.`);
-//       } else {
-//         setFeedback(`Failed! No attempts left. The exact step count was ${finalizedSteps}.`);
-//       }
-//     }
-//   };
-
-//   const getTreeImage = () => {
-//     if (level >= 1001) {
-//       return { uri: "https://example.com/full_tree.png" };
-//     } else if (level >= 101) {
-//       return { uri: "https://example.com/half_tree.png" };
-//     } else {
-//       return { uri: "https://images.unsplash.com/photo-1617488983195-93997cb57cdd?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" };
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Step Tracker</Text>
-//       <Text style={styles.level}>Level: {level}</Text>
-//       <Image source={getTreeImage()} style={styles.treeImage} />
-//       {isTracking ? (
-//         <Text style={styles.timer}>Time: {timer}s</Text>
-//       ) : finalizedSteps === null ? (
-//         <Text style={styles.status}>Press start to begin tracking.</Text>
-//       ) : (
-//         <Text style={styles.finalized}>Steps Finalized</Text>
-//       )}
+      // Check if minimum requirements are met
+      const distance = getDistance();
+      const distanceNum = parseFloat(distance);
       
-//       <Button title={isTracking ? "Stop" : "Start"} onPress={() => isTracking ? stopTracking() : setIsTracking(true)} />
-      
-//       {isLoading && (
-//         <Modal transparent={true} visible={isLoading}>
-//           <View style={styles.modalContainer}>
-//             <ActivityIndicator size="large" color="#0000ff" />
-//             <Text>Finalizing steps...</Text>
-//           </View>
-//         </Modal>
-//       )}
-      
-//       <Modal transparent={true} visible={isModalVisible}>
-//         <View style={styles.modalContainer}>
-//           <View style={styles.modalContent}>
-//             <Text style={styles.modalTitle}>Your Steps are Finalized!</Text>
-//             <TextInput 
-//               style={styles.input}
-//               placeholder="Enter your guess"
-//               keyboardType="numeric"
-//               value={guess}
-//               onChangeText={setGuess}
-//             />
-//             <Button title="Submit Guess" onPress={checkGuess} />
-//             {feedback !== "" && <Text style={styles.modalText}>{feedback}</Text>}
-//             {hint && <Text style={styles.modalText}>Hint: Between {hint[0]} and {hint[1]}</Text>}
-//             <Button title="Close" onPress={() => setIsModalVisible(false)} />
-//           </View>
-//         </View>
-//       </Modal>
-//     </View>
-//   );
-// };
+      if (steps >= RUNNING_CONFIG.minSteps && distanceNum >= RUNNING_CONFIG.minDistance) {
+        generateMathProblem();
+        setIsModalVisible(true);
+        setFeedback("");
+        setMathTimer(10);
+        startMathTimer();
+      } else {
+        Alert.alert("Goal Not Met", 
+          `Running Goal: ${RUNNING_CONFIG.minSteps} steps and ${RUNNING_CONFIG.minDistance} km\nYou did: ${steps} steps and ${distance} km`
+        );
+        resetTracking();
+      }
+    }, 3000);
+  };
 
-// const styles = StyleSheet.create({
-//   container: { flex: 1, justifyContent: "center", alignItems: "center" },
-//   title: { fontSize: 24, fontWeight: "bold" },
-//   level: { fontSize: 18, color: "blue", marginTop: 10 },
-//   timer: { fontSize: 18, marginTop: 10 },
-//   status: { fontSize: 16, color: "gray", marginTop: 10 },
-//   finalized: { fontSize: 20, fontWeight: "bold", marginTop: 10 },
-//   treeImage: { width: 100, height: 100, marginTop: 10 },
-//   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-//   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" }
-// });
+  const generateMathProblem = () => {
+    // More complex math for running mode
+    const num1 = Math.floor(Math.random() * 20) + 10;
+    const num2 = Math.floor(Math.random() * 20) + 10;
+    const operations = ["+", "-", "*", "/"];
+    const operation = operations[Math.floor(Math.random() * operations.length)];
 
-// export default StepCounter;
+    let answer;
+    switch (operation) {
+      case "+":
+        answer = num1 + num2;
+        break;
+      case "-":
+        answer = num1 - num2;
+        break;
+      case "*":
+        answer = num1 * num2;
+        break;
+      case "/":
+        // Ensure whole number division
+        answer = Math.floor(num1 / num2);
+        break;
+    }
+    
+    const options = [answer, answer + 3, answer - 3, answer + 5].sort(() => Math.random() - 0.5);
+    
+    setMathProblem(`${num1} ${operation} ${num2} = ?`);
+    setMathAnswer(answer);
+    setMathOptions(options);
+  };
+
+  const startMathTimer = () => {
+    let timeLeft = 10;
+    const timerInterval = setInterval(() => {
+      timeLeft -= 1;
+      setMathTimer(timeLeft);
+      if (timeLeft === 0) {
+        clearInterval(timerInterval);
+        processGameOutcome(false);
+      }
+    }, 1000);
+
+    window.mathTimerInterval = timerInterval;
+  };
+
+  const processGameOutcome = (isCorrect) => {
+    // Calculate XP
+    let earnedXp = 0;
+    const distance = parseFloat(getDistance());
+    
+    if (isCorrect) {
+      // Base points for correct answer
+      earnedXp += RUNNING_CONFIG.correctAnswerPoints;
+      
+      // Extra points for additional distance
+      const extraDistancePoints = Math.floor((distance - RUNNING_CONFIG.minDistance) / 0.1) * RUNNING_CONFIG.extraPointsPer100m;
+      earnedXp += Math.max(0, extraDistancePoints);
+    }
+
+    // Update XP and check for level up
+    const newXp = xp + earnedXp;
+    setXp(newXp);
+
+    // Determine new level
+    const newLevel = Math.floor(newXp / 20000) + 1;
+    setLevel(newLevel);
+
+    // Determine tree stage
+    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Small Oak Tree 🌱🌳";
+    setTreeStage(currentTreeStage);
+
+    // Show results
+    if (isCorrect) {
+      Alert.alert("Great Job!", `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`);
+    } else {
+      Alert.alert("Time's Up!", "No points earned this time.");
+    }
+
+    // Reset tracking
+    resetTracking();
+  };
+
+  const checkMathAnswer = (selectedOption) => {
+    if (window.mathTimerInterval) {
+      clearInterval(window.mathTimerInterval);
+    }
+
+    if (selectedOption === mathAnswer) {
+      setFeedback("✅ Correct! Well done!");
+      processGameOutcome(true);
+    } else {
+      setFeedback(`❌ Incorrect! The correct answer was ${mathAnswer}`);
+      processGameOutcome(false);
+    }
+    
+    setIsModalVisible(false);
+  };
+
+  const resetTracking = () => {
+    setIsTracking(false);
+    setSteps(0);
+    setTimer(0);
+    setFinalizedSteps(null);
+  };
+
+  const getDistance = () => {
+    // Running step length (longest stride)
+    const stepLength = 1.5;
+    return (steps * stepLength / 1000).toFixed(2) + " km";
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Step Tracker (Running Mode)</Text>
+      <Text style={styles.level}>Level: {level} - {treeStage}</Text>
+      <Text style={styles.xp}>XP: {xp}</Text>
+      <Text style={styles.steps}>Steps: {steps}</Text>
+      <Text style={styles.timer}>Time: {timer}s</Text>
+      <Text style={styles.distance}>Distance: {getDistance()}</Text>
+      <Button 
+        title={isTracking ? "Stop" : "Start"} 
+        onPress={() => (isTracking ? stopTracking() : setIsTracking(true))} 
+      />
+
+      {isLoading && (
+        <Modal transparent={true} visible={isLoading}>
+          <View style={styles.modalContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text>Finalizing steps...</Text>
+          </View>
+        </Modal>
+      )}
+
+      <Modal transparent={true} visible={isModalVisible}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Solve the Math Problem!</Text>
+            <Text style={styles.mathProblem}>{mathProblem}</Text>
+            <Text>Time left: {mathTimer}s</Text>
+            {mathOptions.map((option, index) => (
+              <Button key={index} title={option.toString()} onPress={() => checkMathAnswer(option)} />
+            ))}
+            {feedback !== "" && <Text style={styles.modalText}>{feedback}</Text>}
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 24, fontWeight: "bold" },
+  level: { fontSize: 18, color: "blue", marginTop: 10 },
+  xp: { fontSize: 18, color: "green", marginTop: 10 },
+  steps: { 
+    fontSize: 18, 
+    marginTop: 10, 
+    color: 'green',
+    fontWeight: 'bold' 
+  },
+  timer: { fontSize: 18, marginTop: 10 },
+  distance: { fontSize: 18, marginTop: 10, color: "purple" },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
+  modalText: { fontSize: 18, marginTop: 10, textAlign: "center" }
+});
+
+export default StepCounter;
