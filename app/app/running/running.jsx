@@ -1,16 +1,59 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Modal, ActivityIndicator, Button, Alert } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Modal, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Alert,
+  Animated,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import { Pedometer } from "expo-sensors";
 
-const StepCounter = () => {
+// Simple icon component to replace expo/vector-icons
+const SimpleIcon = ({ name, size = 24, color = "#000" }) => {
+  // Basic icons using Text component
+  switch(name) {
+    case "footsteps":
+      return <Text style={{ fontSize: size, color }}>👣</Text>;
+    case "route":
+      return <Text style={{ fontSize: size, color }}>🛣️</Text>;
+    case "clock":
+      return <Text style={{ fontSize: size, color }}>⏱️</Text>;
+    case "play":
+      return <Text style={{ fontSize: size, color }}>▶️</Text>;
+    case "stop":
+      return <Text style={{ fontSize: size, color }}>⏹️</Text>;
+    case "star":
+      return <Text style={{ fontSize: size, color }}>⭐</Text>;
+    case "tree":
+      return <Text style={{ fontSize: size * 1.5, color }}>🌳</Text>;
+    case "sapling":
+      return <Text style={{ fontSize: size * 1.5, color }}>🌱</Text>;
+    case "pine":
+      return <Text style={{ fontSize: size * 1.5, color }}>🌲</Text>;
+    case "forestry":
+      return <Text style={{ fontSize: size * 1.5, color }}>🌴</Text>;
+    default:
+      return null;
+  }
+};
+
+const RunningStepCounter = () => {
   // Game Configuration for Running Category
   const RUNNING_CONFIG = {
-    minDistance: 1.5,  // 1500m
-    minSteps: 1980,
-    basePoints: 1000,
-    correctAnswerPoints: 1000,
+    minDistance: 2.0,  // 2000m
+    minSteps: 2500,
+    basePoints: 800,
+    correctAnswerPoints: 750,
     extraPointsPer100m: 150
   };
+
+  // Use useRef instead of window for timer interval
+  const mathTimerIntervalRef = useRef(null);
 
   const [isAvailable, setIsAvailable] = useState(false);
   const [steps, setSteps] = useState(0);
@@ -27,14 +70,78 @@ const StepCounter = () => {
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(0);
   const [treeStage, setTreeStage] = useState("Sprout");  // Initial tree stage
+  const [pulseAnim] = useState(new Animated.Value(1));
+  const [stepGoalPercent, setStepGoalPercent] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
 
   // Tree progression stages
   const TREE_STAGES = [
-    { maxLevel: 50, stage: "Small Oak Tree 🌱🌳" },
-    { maxLevel: 100, stage: "Pine Tree 🌲" },
-    { maxLevel: 150, stage: "Cherry Blossom Tree 🌸" },
-    // Future stages can be added
+    { maxLevel: 5, stage: "Exotic Sprout 🌱", icon: "sapling" },
+    { maxLevel: 15, stage: "Tropical Sapling 🌴", icon: "forestry" },
+    { maxLevel: 30, stage: "Rainforest Tree 🌴🌴", icon: "forestry" },
+    { maxLevel: 50, stage: "Lush Rainforest 🌴🌴🌴", icon: "forestry" },
   ];
+
+  // Running tips to rotate through
+  const RUNNING_TIPS = [
+    "Proper running form includes keeping your head up and shoulders relaxed.",
+    "Breathe in through your nose and out through your mouth while running.",
+    "Running regularly helps strengthen your heart and lungs.",
+    "Track your progress by time or distance, not just speed.",
+    "Intervals of fast and slow running build endurance more effectively."
+  ];
+
+  // Format time in minutes:seconds
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Animation for steps count
+  useEffect(() => {
+    if (isTracking) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isTracking]);
+
+  // Update step goal percentage
+  useEffect(() => {
+    const percent = Math.min(100, (steps / RUNNING_CONFIG.minSteps) * 100);
+    setStepGoalPercent(percent);
+  }, [steps]);
+
+  // Rotate tips
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex((prevIndex) => (prevIndex + 1) % RUNNING_TIPS.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Clean up mathTimerInterval when component unmounts
+  useEffect(() => {
+    return () => {
+      if (mathTimerIntervalRef.current) {
+        clearInterval(mathTimerIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let subscription;
@@ -85,7 +192,7 @@ const StepCounter = () => {
         startMathTimer();
       } else {
         Alert.alert("Goal Not Met", 
-          `Running Goal: ${RUNNING_CONFIG.minSteps} steps and ${RUNNING_CONFIG.minDistance} km\nYou did: ${steps} steps and ${distance} km`
+          `You need at least ${RUNNING_CONFIG.minSteps} steps and ${RUNNING_CONFIG.minDistance} km. You did: ${steps} steps and ${distance} km`
         );
         resetTracking();
       }
@@ -95,7 +202,7 @@ const StepCounter = () => {
   const generateMathProblem = () => {
     // More complex math for running mode
     const num1 = Math.floor(Math.random() * 20) + 10;
-    const num2 = Math.floor(Math.random() * 20) + 10;
+    const num2 = Math.floor(Math.random() * 20) + 5;
     const operations = ["+", "-", "*", "/"];
     const operation = operations[Math.floor(Math.random() * operations.length)];
 
@@ -111,20 +218,49 @@ const StepCounter = () => {
         answer = num1 * num2;
         break;
       case "/":
-        // Ensure whole number division
-        answer = Math.floor(num1 / num2);
+        // Ensure clean division for easier mental math
+        const product = num1 * num2;
+        answer = num1;
+        setMathProblem(`${product} ${operation} ${num2} = ?`);
         break;
+      default:
+        setMathProblem(`${num1} ${operation} ${num2} = ?`);
     }
     
-    const options = [answer, answer + 3, answer - 3, answer + 5].sort(() => Math.random() - 0.5);
+    if (operation !== "/") {
+      setMathProblem(`${num1} ${operation} ${num2} = ?`);
+    }
     
-    setMathProblem(`${num1} ${operation} ${num2} = ?`);
+    // Generate options with appropriate difficulty
+    const options = [answer];
+    
+    // Add two wrong answers that are within a reasonable range
+    while (options.length < 3) {
+      const offset = Math.floor(Math.random() * 10) + 1;
+      const sign = Math.random() < 0.5 ? 1 : -1;
+      const wrongAnswer = answer + (sign * offset);
+      
+      // Ensure no duplicates
+      if (!options.includes(wrongAnswer)) {
+        options.push(wrongAnswer);
+      }
+    }
+    
+    // Randomize the order of options
+    const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
+    
     setMathAnswer(answer);
-    setMathOptions(options);
+    setMathOptions(shuffledOptions);
   };
 
   const startMathTimer = () => {
     let timeLeft = 10;
+    
+    // Clear any existing timer before setting a new one
+    if (mathTimerIntervalRef.current) {
+      clearInterval(mathTimerIntervalRef.current);
+    }
+    
     const timerInterval = setInterval(() => {
       timeLeft -= 1;
       setMathTimer(timeLeft);
@@ -134,10 +270,17 @@ const StepCounter = () => {
       }
     }, 1000);
 
-    window.mathTimerInterval = timerInterval;
+    // Store the interval reference in our useRef
+    mathTimerIntervalRef.current = timerInterval;
   };
 
   const processGameOutcome = (isCorrect) => {
+    // Clear the math timer interval
+    if (mathTimerIntervalRef.current) {
+      clearInterval(mathTimerIntervalRef.current);
+      mathTimerIntervalRef.current = null;
+    }
+    
     // Calculate XP
     let earnedXp = 0;
     const distance = parseFloat(getDistance());
@@ -157,17 +300,37 @@ const StepCounter = () => {
 
     // Determine new level
     const newLevel = Math.floor(newXp / 20000) + 1;
+    const oldLevel = level;
     setLevel(newLevel);
+    
+    // Check if leveled up
+    const leveledUp = newLevel > oldLevel;
 
     // Determine tree stage
-    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Small Oak Tree 🌱🌳";
+    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Lush Rainforest 🌴🌴🌴";
     setTreeStage(currentTreeStage);
 
     // Show results
     if (isCorrect) {
-      Alert.alert("Great Job!", `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`);
+      if (leveledUp) {
+        Alert.alert(
+          "Level Up!", 
+          `Congratulations! You reached level ${newLevel}!\nYou earned ${earnedXp} XP!`,
+          [{ text: "Awesome!" }]
+        );
+      } else {
+        Alert.alert(
+          "Great Job!", 
+          `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`,
+          [{ text: "Continue" }]
+        );
+      }
     } else {
-      Alert.alert("Time's Up!", "No points earned this time.");
+      Alert.alert(
+        "Time's Up!", 
+        "No points earned this time. Keep trying!",
+        [{ text: "OK" }]
+      );
     }
 
     // Reset tracking
@@ -175,8 +338,10 @@ const StepCounter = () => {
   };
 
   const checkMathAnswer = (selectedOption) => {
-    if (window.mathTimerInterval) {
-      clearInterval(window.mathTimerInterval);
+    // Clear the math timer interval
+    if (mathTimerIntervalRef.current) {
+      clearInterval(mathTimerIntervalRef.current);
+      mathTimerIntervalRef.current = null;
     }
 
     if (selectedOption === mathAnswer) {
@@ -198,66 +363,548 @@ const StepCounter = () => {
   };
 
   const getDistance = () => {
-    // Running step length (longest stride)
-    const stepLength = 1.5;
-    return (steps * stepLength / 1000).toFixed(2) + " km";
+    // Running step length (longer than walking/jogging)
+    const stepLength = 1.2;
+    return (steps * stepLength / 1000).toFixed(2);
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Step Tracker (Running Mode)</Text>
-      <Text style={styles.level}>Level: {level} - {treeStage}</Text>
-      <Text style={styles.xp}>XP: {xp}</Text>
-      <Text style={styles.steps}>Estimated Steps: {steps}</Text>
-      <Text style={styles.timer}>Time: {timer}s</Text>
-      <Text style={styles.distance}>Estimated Distance: {getDistance()}</Text>
-      <Button 
-        title={isTracking ? "Stop" : "Start"} 
-        onPress={() => (isTracking ? stopTracking() : setIsTracking(true))} 
-      />
+  const getTreeIcon = () => {
+    const stage = TREE_STAGES.find(s => level <= s.maxLevel) || TREE_STAGES[TREE_STAGES.length - 1];
+    return stage.icon;
+  };
 
+  // Calculate pace (minutes per km)
+  const getPace = () => {
+    const distance = parseFloat(getDistance());
+    if (distance > 0 && timer > 0) {
+      const minutesPerKm = (timer / 60) / distance;
+      return minutesPerKm.toFixed(2);
+    }
+    return "0.00";
+  };
+
+  // Calculate XP progress to next level
+  const currentLevelXp = (level - 1) * 20000;
+  const nextLevelXp = level * 20000;
+  const xpProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Green Runs</Text>
+            <View style={styles.levelContainer}>
+              <SimpleIcon name="star" size={18} color="#FFD700" />
+              <Text style={styles.levelText}>Level {level}</Text>
+            </View>
+          </View>
+
+          {/* Tree Visualization */}
+          <View style={styles.treeContainer}>
+            <Text style={styles.treeStage}>{treeStage}</Text>
+            <View style={styles.treeImageContainer}>
+              <SimpleIcon 
+                name={getTreeIcon()} 
+                size={60} 
+                color={level <= 5 ? "#00BFA5" : "#004D40"} 
+              />
+            </View>
+          </View>
+
+          {/* XP Progress */}
+          <View style={styles.xpContainer}>
+            <Text style={styles.xpText}>{xp} XP</Text>
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarBackground}>
+                <View style={[styles.progressBar, { width: `${xpProgress}%` }]} />
+              </View>
+              <Text style={styles.progressText}>{Math.round(xpProgress)}% to Level {level + 1}</Text>
+            </View>
+          </View>
+
+          {/* Stats Section */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                <SimpleIcon name="footsteps" size={24} color="#333" />
+              </Animated.View>
+              <Text style={styles.statValue}>{steps}</Text>
+              <Text style={styles.statLabel}>Steps</Text>
+              <View style={styles.goalProgressContainer}>
+                <View style={styles.goalProgressBackground}>
+                  <View
+                    style={[
+                      styles.goalProgress,
+                      { width: `${stepGoalPercent}%` }
+                    ]}
+                  />
+                </View>
+                <Text style={styles.goalText}>{Math.min(100, Math.round(stepGoalPercent))}%</Text>
+              </View>
+            </View>
+
+            <View style={styles.statCard}>
+              <SimpleIcon name="route" size={24} color="#333" />
+              <Text style={styles.statValue}>{getDistance()}</Text>
+              <Text style={styles.statLabel}>km</Text>
+              <Text style={styles.goalText}>Goal: {RUNNING_CONFIG.minDistance} km</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <SimpleIcon name="clock" size={24} color="#333" />
+              <Text style={styles.statValue}>{formatTime(timer)}</Text>
+              <Text style={styles.statLabel}>Time</Text>
+              <Text style={styles.goalText}>{getPace()} min/km</Text>
+            </View>
+          </View>
+
+          {/* Action Button */}
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              isTracking ? styles.stopButton : styles.startButton
+            ]}
+            onPress={() => (isTracking ? stopTracking() : setIsTracking(true))}
+          >
+            <Text style={styles.actionButtonText}>
+              {isTracking ? "STOP TRACKING" : "START RUNNING"}
+            </Text>
+            <SimpleIcon
+              name={isTracking ? "stop" : "play"}
+              size={20}
+              color="white"
+            />
+          </TouchableOpacity>
+
+          {/* Running Stats Summary */}
+          {finalizedSteps && (
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryTitle}>Last Run Summary</Text>
+              <View style={styles.summaryContent}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Steps:</Text>
+                  <Text style={styles.summaryValue}>{finalizedSteps}</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Distance:</Text>
+                  <Text style={styles.summaryValue}>{getDistance()} km</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Time:</Text>
+                  <Text style={styles.summaryValue}>{formatTime(timer)}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Health Tips Section */}
+          <View style={styles.tipsContainer}>
+            <Text style={styles.tipsTitle}>Running Tip</Text>
+            <Text style={styles.tipsText}>{RUNNING_TIPS[tipIndex]}</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Loading Modal */}
       {isLoading && (
         <Modal transparent={true} visible={isLoading}>
           <View style={styles.modalContainer}>
-            <ActivityIndicator size="large" color="#0000ff" />
-            <Text>Finalizing steps...</Text>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#00BFA5" />
+              <Text style={styles.loadingText}>Finalizing steps...</Text>
+            </View>
           </View>
         </Modal>
       )}
 
-      <Modal transparent={true} visible={isModalVisible}>
+      {/* Math Problem Modal */}
+      <Modal transparent={true} visible={isModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Solve the Math Problem!</Text>
+          <View style={styles.mathModalContent}>
+            <Text style={styles.mathModalTitle}>Brain Boost Challenge!</Text>
             <Text style={styles.mathProblem}>{mathProblem}</Text>
-            <Text>Time left: {mathTimer}s</Text>
-            {mathOptions.map((option, index) => (
-              <Button key={index} title={option.toString()} onPress={() => checkMathAnswer(option)} />
-            ))}
-            {feedback !== "" && <Text style={styles.modalText}>{feedback}</Text>}
+            
+            <View style={styles.mathTimerContainer}>
+              <View style={styles.mathTimerBackground}>
+                <View 
+                  style={[
+                    styles.mathTimerProgress, 
+                    { width: `${(mathTimer/10) * 100}%` }
+                  ]} 
+                />
+              </View>
+              <Text style={styles.mathTimerText}>{mathTimer}s</Text>
+            </View>
+            
+            <View style={styles.mathOptionsContainer}>
+              {mathOptions.map((option, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={styles.mathOptionButton}
+                  onPress={() => checkMathAnswer(option)}
+                >
+                  <Text style={styles.mathOptionText}>{option.toString()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            {feedback !== "" && (
+              <Text style={[
+                styles.feedbackText, 
+                feedback.includes("Correct") ? styles.correctFeedback : styles.incorrectFeedback
+              ]}>
+                {feedback}
+              </Text>
+            )}
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "bold" },
-  level: { fontSize: 18, color: "blue", marginTop: 10 },
-  xp: { fontSize: 18, color: "green", marginTop: 10 },
-  steps: { 
-    fontSize: 18, 
-    marginTop: 10, 
-    color: 'green',
-    fontWeight: 'bold' 
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#E0F2F1',
   },
-  timer: { fontSize: 18, marginTop: 10 },
-  distance: { fontSize: 18, marginTop: 10, color: "purple" },
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
-  modalText: { fontSize: 18, marginTop: 10, textAlign: "center" }
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#E0F2F1',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingTop: 10,
+    backgroundColor: '#00BFA5',
+    borderRadius: 10,
+    padding: 15,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  levelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  levelText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginLeft: 5,
+  },
+  treeContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+    padding: 15,
+    backgroundColor: '#B2DFDB',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#80CBC4',
+  },
+  treeStage: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00695C',
+    marginBottom: 10,
+  },
+  treeImageContainer: {
+    width: 120,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  xpContainer: {
+    marginVertical: 15,
+    padding: 15,
+    backgroundColor: '#E0F7FA',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#B2EBF2',
+  },
+  xpText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#006064',
+    marginBottom: 8,
+  },
+  progressBarContainer: {
+    marginTop: 5,
+  },
+  progressBarBackground: {
+    height: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#00BFA5',
+  },
+  progressText: {
+    fontSize: 12,
+    marginTop: 5,
+    color: '#006064',
+    textAlign: 'right',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 15,
+    alignItems: 'center',
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 8,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 3,
+  },
+  goalProgressContainer: {
+    width: '100%',
+    marginTop: 8,
+  },
+  goalProgressBackground: {
+    height: 6,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  goalProgress: {
+    height: '100%',
+    backgroundColor: '#00BFA5',
+  },
+  goalText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderRadius: 30,
+    marginVertical: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+  },
+  startButton: {
+    backgroundColor: '#00BFA5',
+  },
+  stopButton: {
+    backgroundColor: '#f44336',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  summaryContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 15,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00695C',
+    marginBottom: 10,
+  },
+  summaryContent: {
+    flexDirection: 'column',
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  tipsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 15,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  tipsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00695C',
+    marginBottom: 8,
+  },
+  tipsText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  loadingContainer: {
+    backgroundColor: 'white',
+    padding: 25,
+    borderRadius: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 10,
+    color: '#333',
+  },
+  mathModalContent: {
+    backgroundColor: 'white',
+    padding: 25,
+    borderRadius: 20,
+    width: '80%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  mathModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#00BFA5',
+    marginBottom: 15,
+  },
+  mathProblem: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#333',
+    marginVertical: 15,
+  },
+  mathTimerContainer: {
+    width: '100%',
+    marginVertical: 15,
+  },
+  mathTimerBackground: {
+    height: 8,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  mathTimerProgress: {
+    height: '100%',
+    backgroundColor: '#26A69A',
+  },
+  mathTimerText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+    textAlign: 'right',
+  },
+  mathOptionsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    marginVertical: 10,
+  },
+  mathOptionButton: {
+    backgroundColor: '#E0F2F1',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    margin: 5,
+    minWidth: 80,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#00BFA5',
+  },
+  mathOptionText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00BFA5',
+  },
+  feedbackText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 15,
+    padding: 10,
+    borderRadius: 10,
+  },
+  correctFeedback: {
+    backgroundColor: '#E0F2F1',
+    color: '#00695C',
+  },
+  incorrectFeedback: {
+    backgroundColor: '#FFEBEE',
+    color: '#C62828',
+  },
 });
 
-export default StepCounter;
+export default RunningStepCounter;
