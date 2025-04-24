@@ -12,6 +12,14 @@ import {
   ScrollView,
 } from "react-native";
 import { Pedometer } from "expo-sensors";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Storage keys
+const STORAGE_KEYS = {
+  LEVEL: '@green_steps_level',
+  XP: '@green_steps_xp',
+  TREE_STAGE: '@green_steps_tree_stage',
+};
 
 // Simple icon component to replace expo/vector-icons
 const SimpleIcon = ({ name, size = 24, color = "#000" }) => {
@@ -69,6 +77,7 @@ const StepCounter = () => {
   const [pulseAnim] = useState(new Animated.Value(1));
   const [stepGoalPercent, setStepGoalPercent] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Tree progression stages
   const TREE_STAGES = [
@@ -93,6 +102,53 @@ const StepCounter = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+  
+
+  // Load saved data when app starts
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedLevel = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL);
+        const savedXp = await AsyncStorage.getItem(STORAGE_KEYS.XP);
+        const savedTreeStage = await AsyncStorage.getItem(STORAGE_KEYS.TREE_STAGE);
+        
+        if (savedLevel) setLevel(parseInt(savedLevel));
+        if (savedXp) setXp(parseInt(savedXp));
+        if (savedTreeStage) setTreeStage(savedTreeStage);
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error loading saved data:', error);
+        // Continue with default values if loading fails
+        setIsInitialized(true);
+      }
+    };
+    
+    loadSavedData();
+  }, []);
+
+  // Save data whenever level, xp, or treeStage changes
+  useEffect(() => {
+    const saveData = async () => {
+      if (!isInitialized) return;
+      
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, level.toString());
+        await AsyncStorage.setItem(STORAGE_KEYS.XP, xp.toString());
+        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, treeStage);
+      } catch (error) {
+        console.error('Error saving data:', error);
+        Alert.alert(
+          "Save Error", 
+          "There was a problem saving your progress. Please check your storage permissions."
+        );
+      }
+    };
+    
+    if (isInitialized) {
+      saveData();
+    }
+  }, [level, xp, treeStage, isInitialized]);
 
   // Animation for steps count
   useEffect(() => {
@@ -346,6 +402,16 @@ const StepCounter = () => {
   const nextLevelXp = level * 20000;
   const xpProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
 
+  // Don't render until data is loaded
+  if (!isInitialized) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text style={styles.loadingText}>Loading your Green Steps...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -502,6 +568,17 @@ const StepCounter = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    fontSize: 18,
+    marginTop: 15,
+    color: '#4CAF50',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F5F5F5',
