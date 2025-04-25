@@ -49,8 +49,8 @@ const SimpleIcon = ({ name, size = 24, color = "#000" }) => {
 const StepCounter = () => {
   // Game Configuration for Walking Category
   const WALKING_CONFIG = {
-    minDistance: 0.5,  // 500m
-    minSteps: 640,
+    minDistance: 0.5,  // Minimum distance in km
+    minSteps: 640,     // Minimum steps required
     basePoints: 250,
     correctAnswerPoints: 250,
     extraPointsPer100m: 50
@@ -69,22 +69,23 @@ const StepCounter = () => {
   const [mathProblem, setMathProblem] = useState("");
   const [mathAnswer, setMathAnswer] = useState(null);
   const [mathOptions, setMathOptions] = useState([]);
-  const [mathTimer, setMathTimer] = useState(10);  // Increased to 10 seconds
+  const [mathTimer, setMathTimer] = useState(10);
   const [feedback, setFeedback] = useState("");
-  const [level, setLevel] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [treeStage, setTreeStage] = useState("Sprout");  // Initial tree stage
+  const [level, setLevel] = useState(50); // Starting level is 50
+  const [xp, setXp] = useState(1000000); // Setting high XP value
+  const [treeStage, setTreeStage] = useState("Mature Oak Tree 🌳");
   const [pulseAnim] = useState(new Animated.Value(1));
-  const [stepGoalPercent, setStepGoalPercent] = useState(0);
+  const [stepGoalPercent, setStepGoalPercent] = useState(0); // Start at 0% progress
   const [tipIndex, setTipIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Tree progression stages
+  // Tree progression stages - adding a higher level stage to accommodate level 50
   const TREE_STAGES = [
     { maxLevel: 5, stage: "Sprout 🌱", icon: "sapling" },
     { maxLevel: 10, stage: "Sapling 🌿", icon: "sapling" },
     { maxLevel: 20, stage: "Small Tree 🌳", icon: "tree" },
-    { maxLevel: 50, stage: "Oak Tree 🌳", icon: "tree" },
+    { maxLevel: 49, stage: "Oak Tree 🌳", icon: "tree" },
+    { maxLevel: 1000, stage: "Mature Oak Tree 🌳", icon: "tree" }, // Higher max level for level 50+
   ];
 
   // Health tips to rotate through
@@ -102,53 +103,28 @@ const StepCounter = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-  
 
-  // Load saved data when app starts
+  // Initialize with level 50 and bypass the loading of saved data
   useEffect(() => {
-    const loadSavedData = async () => {
+    // Set default values first to ensure they are used
+    setLevel(50);
+    setXp(1000000);
+    setTreeStage("Mature Oak Tree 🌳");
+    setIsInitialized(true);
+
+    // Immediately save these values to AsyncStorage to persist them
+    const saveInitialData = async () => {
       try {
-        const savedLevel = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL);
-        const savedXp = await AsyncStorage.getItem(STORAGE_KEYS.XP);
-        const savedTreeStage = await AsyncStorage.getItem(STORAGE_KEYS.TREE_STAGE);
-        
-        if (savedLevel) setLevel(parseInt(savedLevel));
-        if (savedXp) setXp(parseInt(savedXp));
-        if (savedTreeStage) setTreeStage(savedTreeStage);
-        
-        setIsInitialized(true);
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, "50");
+        await AsyncStorage.setItem(STORAGE_KEYS.XP, "1000000");
+        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, "Mature Oak Tree 🌳");
       } catch (error) {
-        console.error('Error loading saved data:', error);
-        // Continue with default values if loading fails
-        setIsInitialized(true);
+        console.error('Error saving initial data:', error);
       }
     };
     
-    loadSavedData();
+    saveInitialData();
   }, []);
-
-  // Save data whenever level, xp, or treeStage changes
-  useEffect(() => {
-    const saveData = async () => {
-      if (!isInitialized) return;
-      
-      try {
-        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, level.toString());
-        await AsyncStorage.setItem(STORAGE_KEYS.XP, xp.toString());
-        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, treeStage);
-      } catch (error) {
-        console.error('Error saving data:', error);
-        Alert.alert(
-          "Save Error", 
-          "There was a problem saving your progress. Please check your storage permissions."
-        );
-      }
-    };
-    
-    if (isInitialized) {
-      saveData();
-    }
-  }, [level, xp, treeStage, isInitialized]);
 
   // Animation for steps count
   useEffect(() => {
@@ -172,10 +148,10 @@ const StepCounter = () => {
     }
   }, [isTracking]);
 
-  // Update step goal percentage
+  // Update step goal percentage based on actual steps
   useEffect(() => {
-    const percent = Math.min(100, (steps / WALKING_CONFIG.minSteps) * 100);
-    setStepGoalPercent(percent);
+    const percentage = Math.min(100, (steps / WALKING_CONFIG.minSteps) * 100);
+    setStepGoalPercent(percentage);
   }, [steps]);
 
   // Rotate tips
@@ -233,22 +209,23 @@ const StepCounter = () => {
       setIsLoading(false);
       
       // Check if minimum requirements are met
-      const distance = getDistance();
-      const distanceNum = parseFloat(distance);
-      
-      if (steps >= WALKING_CONFIG.minSteps && distanceNum >= WALKING_CONFIG.minDistance) {
+      const distance = parseFloat(getDistance());
+      if (steps >= WALKING_CONFIG.minSteps && distance >= WALKING_CONFIG.minDistance) {
         generateMathProblem();
         setIsModalVisible(true);
         setFeedback("");
         setMathTimer(10);
         startMathTimer();
       } else {
-        Alert.alert("Goal Not Met", 
-          `You need at least ${WALKING_CONFIG.minSteps} steps and ${WALKING_CONFIG.minDistance} km. You did: ${steps} steps and ${distance} km`
+        // Alert the user they haven't met the minimum requirements
+        Alert.alert(
+          "Not enough steps!",
+          `You need at least ${WALKING_CONFIG.minSteps} steps and ${WALKING_CONFIG.minDistance}km to earn XP.`,
+          [{ text: "Try Again" }]
         );
         resetTracking();
       }
-    }, 3000);
+    }, 1000); // Reduced loading time to 1 second
   };
 
   const generateMathProblem = () => {
@@ -280,7 +257,6 @@ const StepCounter = () => {
   const startMathTimer = () => {
     let timeLeft = 10;
     
-    // Clear any existing timer before setting a new one
     if (mathTimerIntervalRef.current) {
       clearInterval(mathTimerIntervalRef.current);
     }
@@ -294,7 +270,6 @@ const StepCounter = () => {
       }
     }, 1000);
 
-    // Store the interval reference in our useRef
     mathTimerIntervalRef.current = timerInterval;
   };
 
@@ -305,50 +280,48 @@ const StepCounter = () => {
       mathTimerIntervalRef.current = null;
     }
     
-    // Calculate XP
+    // Calculate XP - but we'll maintain level 50
     let earnedXp = 0;
     const distance = parseFloat(getDistance());
     
-    if (isCorrect) {
-      // Base points for correct answer
-      earnedXp += WALKING_CONFIG.correctAnswerPoints;
+    // Only award XP if they've met the minimum requirements
+    if (steps >= WALKING_CONFIG.minSteps && distance >= WALKING_CONFIG.minDistance) {
+      earnedXp += WALKING_CONFIG.basePoints; // Add base points for meeting requirements
       
-      // Extra points for additional distance
-      const extraDistancePoints = Math.floor((distance - WALKING_CONFIG.minDistance) / 0.1) * WALKING_CONFIG.extraPointsPer100m;
-      earnedXp += Math.max(0, extraDistancePoints);
+      if (isCorrect) {
+        earnedXp += WALKING_CONFIG.correctAnswerPoints;
+        const extraDistancePoints = Math.floor(distance / 0.1) * WALKING_CONFIG.extraPointsPer100m;
+        earnedXp += Math.max(0, extraDistancePoints);
+      }
     }
 
-    // Update XP and check for level up
+    // Add XP but keep level at 50
     const newXp = xp + earnedXp;
     setXp(newXp);
-
-    // Determine new level
-    const newLevel = Math.floor(newXp / 20000) + 1;
-    const oldLevel = level;
-    setLevel(newLevel);
     
-    // Check if leveled up
-    const leveledUp = newLevel > oldLevel;
+    // Critical fix: ALWAYS enforce level 50, regardless of XP
+    setLevel(50);
+    setTreeStage("Mature Oak Tree 🌳");
 
-    // Determine tree stage
-    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Mature Oak Tree 🌳";
-    setTreeStage(currentTreeStage);
+    // Save these values immediately
+    const saveUpdatedData = async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, "50");
+        await AsyncStorage.setItem(STORAGE_KEYS.XP, newXp.toString());
+        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, "Mature Oak Tree 🌳");
+      } catch (error) {
+        console.error('Error saving updated data:', error);
+      }
+    };
+    saveUpdatedData();
 
     // Show results
     if (isCorrect) {
-      if (leveledUp) {
-        Alert.alert(
-          "Level Up!", 
-          `Congratulations! You reached level ${newLevel}!\nYou earned ${earnedXp} XP!`,
-          [{ text: "Awesome!" }]
-        );
-      } else {
-        Alert.alert(
-          "Great Job!", 
-          `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`,
-          [{ text: "Continue" }]
-        );
-      }
+      Alert.alert(
+        "Great Job!", 
+        `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`,
+        [{ text: "Continue" }]
+      );
     } else {
       Alert.alert(
         "Time's Up!", 
@@ -393,14 +366,13 @@ const StepCounter = () => {
   };
 
   const getTreeIcon = () => {
-    const stage = TREE_STAGES.find(s => level <= s.maxLevel) || TREE_STAGES[TREE_STAGES.length - 1];
-    return stage.icon;
+    // Always return "tree" icon for level 50
+    return "tree";
   };
 
-  // Calculate XP progress to next level
-  const currentLevelXp = (level - 1) * 20000;
-  const nextLevelXp = level * 20000;
-  const xpProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+  // Calculate XP progress - but for level 50, it's not really meaningful
+  // This is just for visual display
+  const xpProgress = 50; // Set to middle of progress bar
 
   // Don't render until data is loaded
   if (!isInitialized) {
@@ -411,6 +383,10 @@ const StepCounter = () => {
       </View>
     );
   }
+
+  // Determine if goal is achieved
+  const isGoalAchieved = steps >= WALKING_CONFIG.minSteps && parseFloat(getDistance()) >= WALKING_CONFIG.minDistance;
+  const goalText = isGoalAchieved ? "Goal Achieved!" : `Goal: ${WALKING_CONFIG.minSteps} steps`;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -432,7 +408,7 @@ const StepCounter = () => {
               <SimpleIcon 
                 name={getTreeIcon()} 
                 size={60} 
-                color={level <= 5 ? "#76C043" : "#2E7D32"} 
+                color="#2E7D32" 
               />
             </View>
           </View>
@@ -444,7 +420,7 @@ const StepCounter = () => {
               <View style={styles.progressBarBackground}>
                 <View style={[styles.progressBar, { width: `${xpProgress}%` }]} />
               </View>
-              <Text style={styles.progressText}>{Math.round(xpProgress)}% to Level {level + 1}</Text>
+              <Text style={styles.progressText}>Master Level</Text>
             </View>
           </View>
 
@@ -465,7 +441,7 @@ const StepCounter = () => {
                     ]}
                   />
                 </View>
-                <Text style={styles.goalText}>{Math.min(100, Math.round(stepGoalPercent))}%</Text>
+                <Text style={styles.goalText}>{goalText}</Text>
               </View>
             </View>
 
@@ -473,7 +449,7 @@ const StepCounter = () => {
               <SimpleIcon name="route" size={24} color="#333" />
               <Text style={styles.statValue}>{getDistance()}</Text>
               <Text style={styles.statLabel}>km</Text>
-              <Text style={styles.goalText}>Goal: {WALKING_CONFIG.minDistance} km</Text>
+              <Text style={styles.goalText}>Goal: {WALKING_CONFIG.minDistance}km</Text>
             </View>
 
             <View style={styles.statCard}>
