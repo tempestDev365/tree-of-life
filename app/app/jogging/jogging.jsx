@@ -49,17 +49,20 @@ const SimpleIcon = ({ name, size = 24, color = "#000" }) => {
 };
 
 const JoggingStepCounter = () => {
+  // Global refs for tracking subscriptions and intervals
+  const pedometerSubscriptionRef = useRef(null);
+  const timerIntervalRef = useRef(null);
+  const mathTimerIntervalRef = useRef(null);
+  const stepsCountRef = useRef(0); // Add ref for steps count
+
   // Game Configuration for Jogging Category
   const JOGGING_CONFIG = {
-    minDistance: 0,  // 1000m
-    minSteps: 0,
+    minDistance: 1.0,  // 1000m
+    minSteps: 1280,
     basePoints: 500,
     correctAnswerPoints: 500,
     extraPointsPer100m: 100
   };
-
-  // Use useRef instead of window for timer interval
-  const mathTimerIntervalRef = useRef(null);
 
   const [isAvailable, setIsAvailable] = useState(false);
   const [steps, setSteps] = useState(0);
@@ -177,6 +180,8 @@ const JoggingStepCounter = () => {
   useEffect(() => {
     const percent = Math.min(100, (steps / JOGGING_CONFIG.minSteps) * 100);
     setStepGoalPercent(percent);
+    // Keep track of steps in ref for access in cleanup functions
+    stepsCountRef.current = steps;
   }, [steps]);
 
   // Rotate tips
@@ -187,65 +192,123 @@ const JoggingStepCounter = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Clean up mathTimerInterval when component unmounts
-  useEffect(() => {
-    return () => {
-      if (mathTimerIntervalRef.current) {
-        clearInterval(mathTimerIntervalRef.current);
+  // Cleanup all subscriptions and intervals
+  const cleanupSubscriptions = () => {
+    if (pedometerSubscriptionRef.current) {
+      try {
+        pedometerSubscriptionRef.current.remove();
+      } catch (e) {
+        console.error("Error removing pedometer subscription:", e);
       }
-    };
-  }, []);
-
-  useEffect(() => {
-    let subscription;
-    let interval;
-
-    const checkPedometer = async () => {
-      const available = await Pedometer.isAvailableAsync();
-      setIsAvailable(available);
-      if (available) {
-        subscription = Pedometer.watchStepCount((result) => {
-          if (isTracking) {
-            setSteps(result.steps);
-          }
-        });
-      }
-    };
-
-    if (isTracking) {
-      setSteps(0);
-      setFinalizedSteps(null);
-      setTimer(0);
-      checkPedometer();
-      interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
+      pedometerSubscriptionRef.current = null;
     }
+    
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    
+    if (mathTimerIntervalRef.current) {
+      clearInterval(mathTimerIntervalRef.current);
+      mathTimerIntervalRef.current = null;
+    }
+  };
 
+  // Handle tracking state changes
+  useEffect(() => {
+    const setupTracking = async () => {
+      if (isTracking) {
+        // Starting tracking - reset states
+        setSteps(0);
+        setFinalizedSteps(null);
+        setTimer(0);
+        
+        // Check if pedometer is available
+        const available = await Pedometer.isAvailableAsync();
+        setIsAvailable(available);
+        
+        if (available) {
+          try {
+            // Clean up any existing subscriptions
+            cleanupSubscriptions();
+            
+            // Set up new pedometer subscription
+            console.log("Setting up new pedometer subscription");
+            const subscription = Pedometer.watchStepCount(result => {
+              console.log("New step count:", result.steps);
+              setSteps(result.steps);
+            });
+            
+            pedometerSubscriptionRef.current = subscription;
+            
+            // Set up timer
+            timerIntervalRef.current = setInterval(() => {
+              setTimer(prev => prev + 1);
+            }, 1000);
+            
+          } catch (error) {
+            console.error("Error setting up pedometer:", error);
+            setIsTracking(false);
+            Alert.alert("Error", "Could not start step tracking.");
+          }
+        } else {
+          setIsTracking(false);
+          Alert.alert("Error", "Pedometer is not available on this device.");
+        }
+      } else {
+        // Stopping tracking - clean up is handled elsewhere
+        console.log("Tracking stopped through useEffect");
+      }
+    };
+    
+    setupTracking();
+    
+    // Clean up subscriptions on unmount
     return () => {
-      if (subscription) subscription.remove();
-      if (interval) clearInterval(interval);
+      cleanupSubscriptions();
     };
   }, [isTracking]);
 
+  const startTracking = () => {
+    console.log("Starting tracking");
+    setIsTracking(true);
+  };
+
   const stopTracking = () => {
+    console.log("Stopping tracking");
+    
+    // First capture the current steps before we clean up and reset states
+    const currentSteps = stepsCountRef.current;
+    
+    // Stop tracking
     setIsTracking(false);
+    
+    // Show loading indicator
     setIsLoading(true);
+    
+    // Clean up subscriptions
+    cleanupSubscriptions();
+    
+    // Use timeout to ensure UI updates properly
     setTimeout(() => {
-      setFinalizedSteps(steps);
+      console.log("Finalizing steps:", currentSteps);
+      setFinalizedSteps(currentSteps);
       setIsLoading(false);
       
       // Check if minimum requirements are met
-      const distance = getDistance();
-      const distanceNum = parseFloat(distance);
-      
-      if (steps >= JOGGING_CONFIG.minSteps && distanceNum >= JOGGING_CONFIG.minDistance) {
+      const distance = parseFloat(getDistance(currentSteps));
+      if (currentSteps >= JOGGING_CONFIG.minSteps && distance >= JOGGING_CONFIG.minDistance) {
         generateMathProblem();
         setIsModalVisible(true);
         setFeedback("");
         setMathTimer(10);
         startMathTimer();
       } else {
-        Alert.alert("Goal Not Met", 
-          `You need at least ${JOGGING_CONFIG.minSteps} steps and ${JOGGING_CONFIG.minDistance} km. You did: ${steps} steps and ${distance} km`
+        // Alert the user they haven't met the minimum requirements
+        Alert.alert(
+          "Not enough steps!",
+          `You need at least ${JOGGING_CONFIG.minSteps} steps and ${JOGGING_CONFIG.minDistance}km to earn XP.`,
+          [{ text: "Try Again" }]
         );
         resetTracking();
       }
@@ -309,7 +372,8 @@ const JoggingStepCounter = () => {
     
     // Calculate XP
     let earnedXp = 0;
-    const distance = parseFloat(getDistance());
+    const currentSteps = finalizedSteps || stepsCountRef.current;
+    const distance = parseFloat(getDistance(currentSteps));
     
     if (isCorrect) {
       // Base points for correct answer
@@ -382,16 +446,21 @@ const JoggingStepCounter = () => {
   };
 
   const resetTracking = () => {
+    // Clean up any existing subscriptions and intervals
+    cleanupSubscriptions();
+    
+    // Reset all tracking states
     setIsTracking(false);
     setSteps(0);
     setTimer(0);
     setFinalizedSteps(null);
+    stepsCountRef.current = 0;
   };
 
-  const getDistance = () => {
+  const getDistance = (stepsCount = steps) => {
     // Jogging step length (slightly longer than walking)
     const stepLength = 1.0;
-    return (steps * stepLength / 1000).toFixed(2);
+    return ((stepsCount || 0) * stepLength / 1000).toFixed(2);
   };
 
   const getTreeIcon = () => {
@@ -413,6 +482,10 @@ const JoggingStepCounter = () => {
       </View>
     );
   }
+
+  // Determine if goal is achieved
+  const isGoalAchieved = steps >= JOGGING_CONFIG.minSteps && parseFloat(getDistance()) >= JOGGING_CONFIG.minDistance;
+  const goalText = isGoalAchieved ? "Goal Achieved!" : `Goal: ${JOGGING_CONFIG.minSteps} steps`;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -467,7 +540,7 @@ const JoggingStepCounter = () => {
                     ]}
                   />
                 </View>
-                <Text style={styles.goalText}>{Math.min(100, Math.round(stepGoalPercent))}%</Text>
+                <Text style={styles.goalText}>{goalText}</Text>
               </View>
             </View>
 
@@ -485,13 +558,14 @@ const JoggingStepCounter = () => {
             </View>
           </View>
 
-          {/* Action Button */}
+          {/* Action Button - FIXED: Now uses direct function references instead of inline arrow functions */}
           <TouchableOpacity
             style={[
               styles.actionButton,
               isTracking ? styles.stopButton : styles.startButton
             ]}
-            onPress={() => (isTracking ? stopTracking() : setIsTracking(true))}
+            onPress={isTracking ? stopTracking : startTracking}
+            disabled={isLoading} // Disable button during loading
           >
             <Text style={styles.actionButtonText}>
               {isTracking ? "STOP TRACKING" : "START JOGGING"}
