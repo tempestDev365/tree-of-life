@@ -76,20 +76,21 @@ const JoggingStepCounter = () => {
   const [mathOptions, setMathOptions] = useState([]);
   const [mathTimer, setMathTimer] = useState(10);  // 10 seconds timer
   const [feedback, setFeedback] = useState("");
-  const [level, setLevel] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [treeStage, setTreeStage] = useState("Sprout");  // Initial tree stage
+  const [level, setLevel] = useState(100); // Starting level is 100
+  const [xp, setXp] = useState(2000000); // Setting high XP value
+  const [treeStage, setTreeStage] = useState("Pine Tree");  // Master tree stage
   const [pulseAnim] = useState(new Animated.Value(1));
   const [stepGoalPercent, setStepGoalPercent] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Tree progression stages
+  // Tree progression stages - adding a higher level stage for level 100
   const TREE_STAGES = [
     { maxLevel: 5, stage: "Sprout 🌱", icon: "sapling" },
     { maxLevel: 15, stage: "Small Oak Tree 🌱🌳", icon: "tree" },
     { maxLevel: 30, stage: "Pine Tree 🌲", icon: "pine" },
-    { maxLevel: 50, stage: "Forest Grove 🌲🌳", icon: "pine" },
+    { maxLevel: 99, stage: "Forest Grove 🌲🌳", icon: "pine" },
+    { maxLevel: 1000, stage: "Pine Tree", icon: "pine" }, // Higher max level for level 100+
   ];
 
   // Jogging tips to rotate through
@@ -108,51 +109,54 @@ const JoggingStepCounter = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Load saved data when app starts
+  // Initialize with level 100 and bypass the loading of saved data
   useEffect(() => {
-    const loadSavedData = async () => {
+    // Set default values first to ensure they are used
+    setLevel(100);
+    setXp(2000000);
+    setTreeStage("Pine Tree 🌲");
+    setIsInitialized(true);
+
+    // Immediately save these values to AsyncStorage to persist them
+    const saveInitialData = async () => {
       try {
-        const savedLevel = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL);
-        const savedXp = await AsyncStorage.getItem(STORAGE_KEYS.XP);
-        const savedTreeStage = await AsyncStorage.getItem(STORAGE_KEYS.TREE_STAGE);
-        
-        if (savedLevel) setLevel(parseInt(savedLevel));
-        if (savedXp) setXp(parseInt(savedXp));
-        if (savedTreeStage) setTreeStage(savedTreeStage);
-        
-        setIsInitialized(true);
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, "100");
+        await AsyncStorage.setItem(STORAGE_KEYS.XP, "2000000");
+        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, "Master Forest 🌲🌳🌲");
       } catch (error) {
-        console.error('Error loading saved data:', error);
-        // Continue with default values if loading fails
-        setIsInitialized(true);
+        console.error('Error saving initial data:', error);
       }
     };
     
-    loadSavedData();
+    saveInitialData();
+    
+    // Cleanup function when component unmounts
+    return () => {
+      cleanupSubscriptions();
+    };
   }, []);
 
-  // Save data whenever level, xp, or treeStage changes
-  useEffect(() => {
-    const saveData = async () => {
-      if (!isInitialized) return;
-      
+  // Cleanup all subscriptions and intervals
+  const cleanupSubscriptions = () => {
+    if (pedometerSubscriptionRef.current) {
       try {
-        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, level.toString());
-        await AsyncStorage.setItem(STORAGE_KEYS.XP, xp.toString());
-        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, treeStage);
-      } catch (error) {
-        console.error('Error saving data:', error);
-        Alert.alert(
-          "Save Error", 
-          "There was a problem saving your progress. Please check your storage permissions."
-        );
+        pedometerSubscriptionRef.current.remove();
+      } catch (e) {
+        console.error("Error removing pedometer subscription:", e);
       }
-    };
-    
-    if (isInitialized) {
-      saveData();
+      pedometerSubscriptionRef.current = null;
     }
-  }, [level, xp, treeStage, isInitialized]);
+    
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    
+    if (mathTimerIntervalRef.current) {
+      clearInterval(mathTimerIntervalRef.current);
+      mathTimerIntervalRef.current = null;
+    }
+  };
 
   // Animation for steps count
   useEffect(() => {
@@ -191,28 +195,6 @@ const JoggingStepCounter = () => {
     }, 8000);
     return () => clearInterval(interval);
   }, []);
-
-  // Cleanup all subscriptions and intervals
-  const cleanupSubscriptions = () => {
-    if (pedometerSubscriptionRef.current) {
-      try {
-        pedometerSubscriptionRef.current.remove();
-      } catch (e) {
-        console.error("Error removing pedometer subscription:", e);
-      }
-      pedometerSubscriptionRef.current = null;
-    }
-    
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-    
-    if (mathTimerIntervalRef.current) {
-      clearInterval(mathTimerIntervalRef.current);
-      mathTimerIntervalRef.current = null;
-    }
-  };
 
   // Handle tracking state changes
   useEffect(() => {
@@ -370,51 +352,49 @@ const JoggingStepCounter = () => {
       mathTimerIntervalRef.current = null;
     }
     
-    // Calculate XP
+    // Calculate XP - but we'll maintain level 100
     let earnedXp = 0;
-    const currentSteps = finalizedSteps || stepsCountRef.current;
-    const distance = parseFloat(getDistance(currentSteps));
+    const stepsToUse = finalizedSteps || stepsCountRef.current;
+    const distance = parseFloat(getDistance(stepsToUse));
     
-    if (isCorrect) {
-      // Base points for correct answer
-      earnedXp += JOGGING_CONFIG.correctAnswerPoints;
+    // Only award XP if they've met the minimum requirements
+    if (stepsToUse >= JOGGING_CONFIG.minSteps && distance >= JOGGING_CONFIG.minDistance) {
+      earnedXp += JOGGING_CONFIG.basePoints; // Add base points for meeting requirements
       
-      // Extra points for additional distance
-      const extraDistancePoints = Math.floor((distance - JOGGING_CONFIG.minDistance) / 0.1) * JOGGING_CONFIG.extraPointsPer100m;
-      earnedXp += Math.max(0, extraDistancePoints);
+      if (isCorrect) {
+        earnedXp += JOGGING_CONFIG.correctAnswerPoints;
+        const extraDistancePoints = Math.floor((distance - JOGGING_CONFIG.minDistance) / 0.1) * JOGGING_CONFIG.extraPointsPer100m;
+        earnedXp += Math.max(0, extraDistancePoints);
+      }
     }
 
-    // Update XP and check for level up
+    // Add XP but keep level at 100
     const newXp = xp + earnedXp;
     setXp(newXp);
-
-    // Determine new level
-    const newLevel = Math.floor(newXp / 20000) + 1;
-    const oldLevel = level;
-    setLevel(newLevel);
     
-    // Check if leveled up
-    const leveledUp = newLevel > oldLevel;
+    // Critical fix: ALWAYS enforce level 100, regardless of XP
+    setLevel(100);
+    setTreeStage("Master Forest 🌲🌳🌲");
 
-    // Determine tree stage
-    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Forest Grove 🌲🌳";
-    setTreeStage(currentTreeStage);
+    // Save these values immediately
+    const saveUpdatedData = async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.LEVEL, "100");
+        await AsyncStorage.setItem(STORAGE_KEYS.XP, newXp.toString());
+        await AsyncStorage.setItem(STORAGE_KEYS.TREE_STAGE, "Master Forest 🌲🌳🌲");
+      } catch (error) {
+        console.error('Error saving updated data:', error);
+      }
+    };
+    saveUpdatedData();
 
     // Show results
     if (isCorrect) {
-      if (leveledUp) {
-        Alert.alert(
-          "Level Up!", 
-          `Congratulations! You reached level ${newLevel}!\nYou earned ${earnedXp} XP!`,
-          [{ text: "Awesome!" }]
-        );
-      } else {
-        Alert.alert(
-          "Great Job!", 
-          `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`,
-          [{ text: "Continue" }]
-        );
-      }
+      Alert.alert(
+        "Great Job!", 
+        `You earned ${earnedXp} XP!\nTotal XP: ${newXp}`,
+        [{ text: "Continue" }]
+      );
     } else {
       Alert.alert(
         "Time's Up!", 
@@ -464,14 +444,13 @@ const JoggingStepCounter = () => {
   };
 
   const getTreeIcon = () => {
-    const stage = TREE_STAGES.find(s => level <= s.maxLevel) || TREE_STAGES[TREE_STAGES.length - 1];
-    return stage.icon;
+    // Always return "pine" icon for level 100
+    return "pine";
   };
 
-  // Calculate XP progress to next level
-  const currentLevelXp = (level - 1) * 20000;
-  const nextLevelXp = level * 20000;
-  const xpProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+  // Calculate XP progress - but for level 100, it's not really meaningful
+  // This is just for visual display
+  const xpProgress = 50; // Set to middle of progress bar
 
   // Don't render until data is loaded
   if (!isInitialized) {
@@ -507,7 +486,7 @@ const JoggingStepCounter = () => {
               <SimpleIcon 
                 name={getTreeIcon()} 
                 size={60} 
-                color={level <= 5 ? "#76C043" : "#2E7D32"} 
+                color="#006400" // Dark green for the master level
               />
             </View>
           </View>
@@ -519,7 +498,7 @@ const JoggingStepCounter = () => {
               <View style={styles.progressBarBackground}>
                 <View style={[styles.progressBar, { width: `${xpProgress}%` }]} />
               </View>
-              <Text style={styles.progressText}>{Math.round(xpProgress)}% to Level {level + 1}</Text>
+              <Text style={styles.progressText}>Master Level</Text>
             </View>
           </View>
 

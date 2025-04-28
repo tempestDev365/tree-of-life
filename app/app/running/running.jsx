@@ -44,7 +44,7 @@ const SimpleIcon = ({ name, size = 24, color = "#000" }) => {
     case "pine":
       return <Text style={{ fontSize: size * 1.5, color }}>🌲</Text>;
     case "forestry":
-      return <Text style={{ fontSize: size * 1.5, color }}>🌴</Text>;
+      return <Text style={{ fontSize: size * 1.5, color }}>🌸</Text>;
     default:
       return null;
   }
@@ -78,20 +78,22 @@ const RunningStepCounter = () => {
   const [mathOptions, setMathOptions] = useState([]);
   const [mathTimer, setMathTimer] = useState(10);  // 10 seconds timer
   const [feedback, setFeedback] = useState("");
-  const [level, setLevel] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [treeStage, setTreeStage] = useState("Sprout");  // Initial tree stage
+  const [level, setLevel] = useState(150); // Changed from 1 to 150
+  const [xp, setXp] = useState(2980000); // Set appropriate XP for level 150 (149 * 20000 + some progress)
+  const [treeStage, setTreeStage] = useState("Cherry Blossom"); // Custom stage for high level
   const [pulseAnim] = useState(new Animated.Value(1));
   const [stepGoalPercent, setStepGoalPercent] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Tree progression stages
+  // Extended tree progression stages to accommodate level 150
   const TREE_STAGES = [
     { maxLevel: 5, stage: "Exotic Sprout 🌱", icon: "sapling" },
     { maxLevel: 15, stage: "Tropical Sapling 🌴", icon: "forestry" },
     { maxLevel: 30, stage: "Rainforest Tree 🌴🌴", icon: "forestry" },
     { maxLevel: 50, stage: "Lush Rainforest 🌴🌴🌴", icon: "forestry" },
+    { maxLevel: 100, stage: "Ancient Forest 🌴🌴🌴🌴", icon: "forestry" },
+    { maxLevel: Infinity, stage: "Cherry Blossom Tree 🌸", icon: "forestry" }, // For very high levels
   ];
 
   // Running tips to rotate through
@@ -110,22 +112,25 @@ const RunningStepCounter = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Load saved data when app starts
+  // Load saved data when app starts - but default to level 150
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        const savedLevel = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL);
-        const savedXp = await AsyncStorage.getItem(STORAGE_KEYS.XP);
-        const savedTreeStage = await AsyncStorage.getItem(STORAGE_KEYS.TREE_STAGE);
+        // Even though we try to load saved data, we'll override with level 150
+        // This ensures the level stays at 150 even if there's saved data
         
-        if (savedLevel) setLevel(parseInt(savedLevel));
-        if (savedXp) setXp(parseInt(savedXp));
-        if (savedTreeStage) setTreeStage(savedTreeStage);
+        // Calculate appropriate XP for level 150
+        const calculatedXp = (150 - 1) * 20000 + Math.floor(Math.random() * 19000); // Some progress in level 150
+        setXp(calculatedXp);
+        
+        // Determine tree stage for level 150
+        const highLevelTreeStage = TREE_STAGES.find(s => 150 <= s.maxLevel)?.stage || "Master Forest 🌴🌴🌴🌴🌴";
+        setTreeStage(highLevelTreeStage);
         
         setIsInitialized(true);
       } catch (error) {
         console.error('Error loading saved data:', error);
-        // Continue with default values if loading fails
+        // Continue with default values (level 150) if loading fails
         setIsInitialized(true);
       }
     };
@@ -416,8 +421,9 @@ const RunningStepCounter = () => {
     const newXp = xp + earnedXp;
     setXp(newXp);
 
-    // Determine new level
-    const newLevel = Math.floor(newXp / 20000) + 1;
+    // Determine new level - but keep at 150 if already there
+    const calculatedLevel = Math.floor(newXp / 20000) + 1;
+    const newLevel = Math.max(calculatedLevel, 150); // Ensure level doesn't go below 150
     const oldLevel = level;
     setLevel(newLevel);
     
@@ -425,7 +431,7 @@ const RunningStepCounter = () => {
     const leveledUp = newLevel > oldLevel;
 
     // Determine tree stage
-    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Lush Rainforest 🌴🌴🌴";
+    const currentTreeStage = TREE_STAGES.find(stage => newLevel <= stage.maxLevel)?.stage || "Master Forest 🌴🌴🌴🌴🌴";
     setTreeStage(currentTreeStage);
 
     // Show results
@@ -541,14 +547,14 @@ const RunningStepCounter = () => {
               <SimpleIcon 
                 name={getTreeIcon()} 
                 size={60} 
-                color={level <= 5 ? "#00BFA5" : "#004D40"} 
+                color="#004D40" // Darker green for high level
               />
             </View>
           </View>
 
           {/* XP Progress */}
           <View style={styles.xpContainer}>
-            <Text style={styles.xpText}>{xp} XP</Text>
+            <Text style={styles.xpText}>{xp.toLocaleString()} XP</Text>
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBackground}>
                 <View style={[styles.progressBar, { width: `${xpProgress}%` }]} />
@@ -698,8 +704,6 @@ const RunningStepCounter = () => {
     </SafeAreaView>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   safeArea: {
