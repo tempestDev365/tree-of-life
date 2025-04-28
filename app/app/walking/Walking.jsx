@@ -55,8 +55,8 @@ const StepCounter = () => {
 
   // Game Configuration for Walking Category
   const WALKING_CONFIG = {
-    minDistance: 0.5,  // Minimum distance in km
-    minSteps: 640,     // Minimum steps required
+    minDistance: 0,  // Minimum distance in km
+    minSteps: 0,     // Minimum steps required
     basePoints: 250,
     correctAnswerPoints: 250,
     extraPointsPer100m: 50
@@ -292,11 +292,28 @@ const StepCounter = () => {
   };
 
   const generateMathProblem = () => {
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    const operations = ["+", "-", "*"];
+    // Determine difficulty based on level
+    let num1, num2, operations;
+    
+    if (level >= 50) {
+      // More difficult math for level 50+: tens and hundreds
+      num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+      num2 = Math.floor(Math.random() * 90) + 10; // 10-99
+      operations = ["+", "-", "*", "/"];
+    } else if (level >= 20) {
+      // Medium difficulty: single and double digits
+      num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+      num2 = Math.floor(Math.random() * 10) + 1; // 1-10
+      operations = ["+", "-", "*"];
+    } else {
+      // Beginner level: small numbers
+      num1 = Math.floor(Math.random() * 10) + 1; // 1-10
+      num2 = Math.floor(Math.random() * 10) + 1; // 1-10
+      operations = ["+", "-", "*"];
+    }
+    
     const operation = operations[Math.floor(Math.random() * operations.length)];
-
+  
     let answer;
     switch (operation) {
       case "+":
@@ -308,9 +325,51 @@ const StepCounter = () => {
       case "*":
         answer = num1 * num2;
         break;
+      case "/":
+        // Ensure division results in a whole number
+        // Temporarily swap values to ensure proper division setup
+        if (operation === "/" && (num2 === 0 || num1 % num2 !== 0)) {
+          // Find a number that divides evenly into num1
+          const factors = [];
+          for (let i = 1; i <= num1; i++) {
+            if (num1 % i === 0 && i > 1) {
+              factors.push(i);
+            }
+          }
+          
+          if (factors.length > 0) {
+            num2 = factors[Math.floor(Math.random() * factors.length)];
+          } else {
+            // Fallback to multiplication if no factors found
+            operation = "*";
+            answer = num1 * num2;
+            break;
+          }
+        }
+        answer = num1 / num2;
+        break;
     }
     
-    const options = [answer, answer + 2, answer - 2].sort(() => Math.random() - 0.5);
+    // Round the answer to handle any floating point issues
+    answer = Math.round(answer * 100) / 100;
+    
+    // Create challenging wrong answers based on level
+    let options;
+    if (level >= 50) {
+      // More sophisticated wrong answers for high levels
+      options = [
+        answer,
+        answer + Math.floor(Math.random() * 10) + 1,
+        answer - Math.floor(Math.random() * 10) - 1,
+        Math.floor(answer * 1.5)
+      ].slice(0, 3); // Take only 3 options
+    } else {
+      // Simpler wrong answers for lower levels
+      options = [answer, answer + 2, answer - 2];
+    }
+    
+    // Sort randomly
+    options.sort(() => Math.random() - 0.5);
     
     setMathProblem(`${num1} ${operation} ${num2} = ?`);
     setMathAnswer(answer);
